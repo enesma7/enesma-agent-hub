@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AGENT HUB · ENESMA Realty</title>
+<script>
+(function () {
+  var path = location.pathname.replace(/\/+$/, '') || '/';
+  if (path === '/index.html' || path === '/home' || path === '/hub') path = '/';
+  if (path.indexOf('/hub/') === 0) path = path.slice(4) || '/';
+  var dest = path === '/'
+    ? '/' + (location.search || '') + (location.hash || '')
+    : '/#' + path + (location.search || '');
+  location.replace(dest);
+})();
+</script>
+</head>
+<body>
+<p>Redirecting to Agent Hub…</p>
+</body>
+</html>

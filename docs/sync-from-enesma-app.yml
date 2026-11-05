@@ -1,0 +1,48 @@
+name: Sync Hub from enesma-app
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+permissions:
+  contents: write
+concurrency:
+  group: sync-hub
+  cancel-in-progress: true
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+      - name: Checkout enesma-app
+        uses: actions/checkout@v4
+        with:
+          repository: enesma7/enesma-app
+          ref: main
+          path: _enesma-app
+      - name: Copy publishable Hub files
+        run: |
+          set -euo pipefail
+          SRC=_enesma-app/hub
+          for f in index.html app.js app.css auth.js config.js content.js favicon-32.png apple-touch-icon.png; do
+            if [ ! -f "$SRC/$f" ]; then
+              echo "Missing expected Hub file: $SRC/$f" >&2
+              exit 1
+            fi
+            cp -a "$SRC/$f" "./$f"
+          done
+          rm -rf ./assets
+          cp -a "$SRC/assets" ./assets
+          printf 'agent.enesmarealty.com\n' > CNAME
+          git add -A -- index.html app.js app.css auth.js config.js content.js favicon-32.png apple-touch-icon.png assets CNAME
+      - name: Commit and push if the Hub changed
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "Hub files already in sync with enesma-app/hub."
+            exit 0
+          fi
+          git commit -m "Sync Agent Hub files from enesma-app/hub."
+          git push
