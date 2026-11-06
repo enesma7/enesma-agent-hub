@@ -309,58 +309,92 @@ window.HUB_CONTENT = {
   "holidays": [
     {
       "title": "New Year's Day",
+      "video": "assets/holidays/new-years.mp4",
+      "poster": "assets/holidays/new-years.jpg",
       "img": "assets/holidays/new-years.jpg"
     },
     {
       "title": "MLK Day",
+      "video": "assets/holidays/mlk.mp4",
+      "poster": "assets/holidays/mlk.jpg",
       "img": "assets/holidays/mlk.jpg"
     },
     {
       "title": "Valentine's Day",
+      "video": "assets/holidays/valentines.mp4",
+      "poster": "assets/holidays/valentines.jpg",
       "img": "assets/holidays/valentines.jpg"
     },
     {
       "title": "Presidents' Day",
+      "video": "assets/holidays/presidents.mp4",
+      "poster": "assets/holidays/presidents.jpg",
       "img": "assets/holidays/presidents.jpg"
     },
     {
       "title": "Mother's Day",
+      "video": "assets/holidays/mothers.mp4",
+      "poster": "assets/holidays/mothers.jpg",
       "img": "assets/holidays/mothers.jpg"
     },
     {
       "title": "Memorial Day",
+      "video": "assets/holidays/memorial.mp4",
+      "poster": "assets/holidays/memorial.jpg",
       "img": "assets/holidays/memorial.jpg"
     },
     {
       "title": "Juneteenth",
+      "video": "assets/holidays/juneteenth.mp4",
+      "poster": "assets/holidays/juneteenth.jpg",
       "img": "assets/holidays/juneteenth.jpg"
     },
     {
       "title": "Independence Day",
+      "video": "assets/holidays/independence.mp4",
+      "poster": "assets/holidays/independence.jpg",
       "img": "assets/holidays/independence.jpg"
     },
     {
       "title": "Labor Day",
+      "video": "assets/holidays/labor.mp4",
+      "poster": "assets/holidays/labor.jpg",
       "img": "assets/holidays/labor.jpg"
     },
     {
       "title": "Indigenous Peoples' Day",
+      "video": "assets/holidays/indigenous.mp4",
+      "poster": "assets/holidays/indigenous.jpg",
       "img": "assets/holidays/indigenous.jpg"
     },
     {
       "title": "Halloween",
+      "video": "assets/holidays/halloween.mp4",
+      "poster": "assets/holidays/halloween.jpg",
       "img": "assets/holidays/halloween.jpg"
     },
     {
+      "title": "Día de los Muertos",
+      "video": "assets/holidays/dia-muertos.mp4",
+      "poster": "assets/holidays/dia-muertos.jpg",
+      "img": "assets/holidays/dia-muertos.jpg"
+    },
+    {
       "title": "Veterans Day",
+      "video": "assets/holidays/veterans.mp4",
+      "poster": "assets/holidays/veterans.jpg",
       "img": "assets/holidays/veterans.jpg"
     },
     {
       "title": "Thanksgiving",
+      "video": "assets/holidays/thanksgiving.mp4",
+      "poster": "assets/holidays/thanksgiving.jpg",
       "img": "assets/holidays/thanksgiving.jpg"
     },
     {
       "title": "Christmas Day",
+      "video": "assets/holidays/christmas.mp4",
+      "poster": "assets/holidays/christmas.jpg",
       "img": "assets/holidays/christmas.jpg"
     }
   ],
@@ -606,7 +640,7 @@ window.HUB_CONTENT = {
       { "img": "assets/sites/compliance-05.jpg", "href": "#/compliance/office-policies", "alt": "Office Policies. Procedures & compliance", "title": "Office Policies", "sub": "Procedures & compliance" }
     ],
     "marketing": [
-      { "img": "assets/sites/tpl-holidays.jpg", "href": "#/marketing-templates/holidays", "alt": "Holidays. Seasonal posts & greetings", "title": "Holidays", "sub": "Seasonal posts & greetings" },
+      { "img": "assets/sites/tpl-holidays.jpg", "href": "#/marketing-templates/holidays", "alt": "Holidays. Tap to play. Press and hold to save to your phone. Add your photo and info in the empty space at the bottom.", "title": "Holidays", "sub": "Tap to play. Press and hold to save to your phone. Add your photo and info in the empty space at the bottom." },
       { "img": "assets/sites/tpl-just-listed.jpg", "href": "https://www.canva.com/d/64BPKTuts5rDZBb", "ext": true, "alt": "Just Listed. New listing announcements", "title": "Just Listed", "sub": "New listing announcements" },
       { "img": "assets/sites/tpl-open-house.jpg", "href": "https://www.canva.com/d/qFj7fK9tmUXN1D6", "ext": true, "alt": "Open House. Open house stories", "title": "Open House", "sub": "Open house stories" },
       { "img": "assets/sites/tpl-escrow.jpg", "href": "https://www.canva.com/d/yPcu-VutS3-LN8I", "ext": true, "alt": "In Escrow. In-escrow announcements", "title": "In Escrow", "sub": "In-escrow announcements" },

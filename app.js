@@ -7,6 +7,7 @@
   var view = 'boot';
   var otpCh = null;
   var searchOpen = false;
+  var holidayCleanups = [];
 
   function h(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -164,7 +165,7 @@
       { t: 'Office Documents', s: 'CDA, invoice and brokerage forms', h: '#/compliance/office-documents' },
       { t: 'Office Policies', s: 'Policies & procedures manual', h: '#/compliance/office-policies' },
       { t: 'Marketing Templates', s: 'Logos, colors and Canva templates', h: '#/marketing-templates' },
-      { t: 'Holidays', s: 'Holiday social graphics', h: '#/marketing-templates/holidays' },
+      { t: 'Holidays', s: 'Tap to play. Press and hold to save to your phone.', h: '#/marketing-templates/holidays' },
       { t: 'Technology', s: 'CRM, MLS and tools', h: '#/technology' },
       { t: 'Office Listings', s: 'Current ENESMA listings', h: '#/listings' },
       { t: 'Office Hubs', s: 'Reserve a desk or the conference room', h: '#/office-hubs' },
@@ -283,12 +284,200 @@
   }
   function pageHolidays() {
     var figs = (C.holidays || []).map(function (x) {
-      return '<figure><img src="' + h(x.img) + '" alt="' + h(x.title) + '"><figcaption>' + h(x.title) + '</figcaption></figure>';
+      var src = x.video || '';
+      var poster = x.poster || x.img || '';
+      var title = x.title || 'Holiday';
+      var file = (src.split('/').pop() || 'holiday.mp4');
+      return '<figure class="holiday-tile" data-title="' + h(title) + '" data-state="paused">' +
+        '<div class="holiday-stage">' +
+        '<video playsinline webkit-playsinline muted loop preload="metadata" disablepictureinpicture disableremoteplayback poster="' + h(poster) + '" src="' + h(src) + '"></video>' +
+        '<button type="button" class="holiday-play" aria-label="Play ' + h(title) + '" aria-pressed="false">' +
+        '<span class="holiday-cue" aria-hidden="true">TAP TO PLAY · HOLD TO SAVE</span></button>' +
+        '</div>' +
+        '<figcaption>' + h(title) + '</figcaption>' +
+        '<a class="holiday-dl" href="' + h(src) + '" download="' + h(file) + '" aria-label="Download ' + h(title) + ' MP4">Download</a>' +
+        '</figure>';
     }).join('');
     return pageHero('HOLIDAYS', 'assets/banners/holidays.jpg') +
       '<section class="section"><div class="wrap">' +
+      '<p class="save-hint">Tap to play. Press and hold to save to your phone. Add your photo and info in the empty space at the bottom.</p>' +
       '<div class="holidays">' + figs + '</div>' +
-      '<p class="save-hint">Right-click or press and hold an image to save it. Add your name, phone and DRE# in the space at the bottom.</p></div></section>';
+      '</div></section>';
+  }
+  function clearHolidayBindings() {
+    holidayCleanups.forEach(function (fn) {
+      try { fn(); } catch (e) {}
+    });
+    holidayCleanups = [];
+  }
+  function bindHolidayTiles() {
+    var root = qs('.holidays');
+    if (!root) return;
+    var HOLD_MS = 500;
+    var MOVE_PX = 10;
+    qsa('.holiday-tile', root).forEach(function (tile) {
+      var stage = qs('.holiday-stage', tile);
+      var video = qs('video', tile);
+      if (!stage || !video) return;
+      video.muted = true;
+      video.defaultMuted = true;
+      video.playsInline = true;
+      video.loop = true;
+      video.autoplay = false;
+      video.controls = false;
+      var timer = null;
+      var down = false;
+      var armed = false;
+      var suppressClick = false;
+      var startX = 0;
+      var startY = 0;
+      var startedAt = 0;
+      var savedAt = 0;
+      function clearTimer() {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      }
+      function blockNextClick() {
+        suppressClick = true;
+      }
+      function sync() {
+        var playing = !video.paused && !video.ended;
+        tile.setAttribute('data-state', playing ? 'playing' : 'paused');
+        var btn = qs('.holiday-play', tile);
+        var title = tile.getAttribute('data-title') || 'holiday story';
+        if (!btn) return;
+        btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+        btn.setAttribute('aria-label', (playing ? 'Pause ' : 'Play ') + title);
+      }
+      function save() {
+        if (savedAt && (Date.now() - savedAt) < 900) return;
+        savedAt = Date.now();
+        var link = qs('.holiday-dl', tile);
+        if (!link) return;
+        var a = document.createElement('a');
+        a.href = link.getAttribute('href');
+        var name = link.getAttribute('download') || '';
+        if (name) a.setAttribute('download', name);
+        a.rel = 'noopener';
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+          if (a.parentNode) a.parentNode.removeChild(a);
+        }, 0);
+      }
+      function cancelPress() {
+        if (!down && !armed) return;
+        down = false;
+        armed = false;
+        stage.classList.remove('is-holding');
+        clearTimer();
+        blockNextClick();
+      }
+      function onPointerDown(e) {
+        if (e.button !== 0) return;
+        clearTimer();
+        down = true;
+        armed = false;
+        suppressClick = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        startedAt = Date.now();
+        stage.classList.remove('is-holding');
+        timer = setTimeout(function () {
+          timer = null;
+          if (!down) return;
+          armed = true;
+          stage.classList.add('is-holding');
+          blockNextClick();
+          save();
+        }, HOLD_MS);
+      }
+      function onPointerMove(e) {
+        if (!down) return;
+        var dx = e.clientX - startX;
+        var dy = e.clientY - startY;
+        if ((dx * dx + dy * dy) > (MOVE_PX * MOVE_PX)) cancelPress();
+      }
+      function onPointerUp() {
+        var held = down && (armed || (Date.now() - startedAt) >= HOLD_MS);
+        clearTimer();
+        down = false;
+        armed = false;
+        stage.classList.remove('is-holding');
+        if (held) {
+          blockNextClick();
+          save();
+        }
+      }
+      function onPointerLeave(e) {
+        if (!down || !e.buttons) return;
+        cancelPress();
+      }
+      function onContextMenu(e) {
+        e.preventDefault();
+        clearTimer();
+        down = false;
+        armed = false;
+        stage.classList.remove('is-holding');
+        blockNextClick();
+        save();
+      }
+      function onClick(e) {
+        if (e.button !== 0) {
+          e.preventDefault();
+          return;
+        }
+        var blocked = suppressClick;
+        suppressClick = false;
+        if (blocked) {
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        if (!video.paused && !video.ended) {
+          video.pause();
+          sync();
+          return;
+        }
+        qsa('video', root).forEach(function (other) {
+          if (other !== video) other.pause();
+        });
+        video.muted = true;
+        video.playsInline = true;
+        var pending = video.play();
+        sync();
+        if (pending && typeof pending.then === 'function') {
+          pending.then(function () { sync(); }).catch(function () {
+            try { video.pause(); } catch (err) {}
+            sync();
+          });
+        }
+      }
+      function onKeyDown(e) {
+        if (e.key === 'Enter' || e.key === ' ') suppressClick = false;
+      }
+      function onMedia() { sync(); }
+      stage.addEventListener('pointerdown', onPointerDown);
+      stage.addEventListener('pointermove', onPointerMove);
+      stage.addEventListener('pointerup', onPointerUp);
+      stage.addEventListener('pointercancel', cancelPress);
+      stage.addEventListener('pointerleave', onPointerLeave);
+      stage.addEventListener('contextmenu', onContextMenu);
+      stage.addEventListener('auxclick', function (e) {
+        e.preventDefault();
+        blockNextClick();
+      });
+      stage.addEventListener('click', onClick);
+      stage.addEventListener('keydown', onKeyDown);
+      video.addEventListener('play', onMedia);
+      video.addEventListener('pause', onMedia);
+      video.addEventListener('ended', onMedia);
+      sync();
+      holidayCleanups.push(clearTimer);
+    });
   }
   function pageTech() {
     return pageHero('TECHNOLOGY', 'assets/banners/technology.jpg') +
@@ -640,11 +829,13 @@
     }
   }
   function renderApp() {
+    clearHolidayBindings();
     view = 'app';
     document.title = titles() + ' · ENESMA Realty';
     $app.innerHTML = headerHtml() + pageFor(path()) + footerHtml() + searchOverlay();
     bindChrome();
     bindHeroVideos();
+    bindHolidayTiles();
     var stage = qs('[data-calc]');
     if (stage && window.HubCalcs) {
       var mount = HubCalcs[stage.getAttribute('data-calc')];
