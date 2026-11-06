@@ -225,13 +225,13 @@
         '<figcaption><b>' + h(c.name) + '</b><code>' + h(c.hex) + '</code></figcaption></figure>';
     }).join('');
     var logos = [
-      { src: 'assets/logo-white.png', name: 'White' },
-      { src: 'assets/logo-black.png', name: 'Black' },
-      { src: 'assets/logo-gold.png', name: 'Aztec Gold' },
-      { src: 'assets/logo-red.png', name: 'Illyrian Red' },
-      { src: 'assets/logo-gold-foil.png', name: 'Gold Foil' }
+      { src: 'assets/logo-white.png', name: 'White', tone: 'dark' },
+      { src: 'assets/logo-black.png', name: 'Black', tone: 'light' },
+      { src: 'assets/logo-gold.png', name: 'Aztec Gold', tone: 'dark' },
+      { src: 'assets/logo-red.png', name: 'Illyrian Red', tone: 'light' },
+      { src: 'assets/logo-gold-foil.png', name: 'Gold Foil', tone: 'dark' }
     ].map(function (l) {
-      return '<figure class="logo-card"><img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark"></figure>';
+      return '<figure class="logo-card ' + l.tone + '"><img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark"></figure>';
     }).join('');
     return pageHero('MARKETING', 'assets/banners/marketing.jpg') +
       '<section class="section"><div class="wrap">' +
