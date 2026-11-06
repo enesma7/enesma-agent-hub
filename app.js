@@ -274,13 +274,8 @@
       '<p class="save-hint">Right-click or press and hold an image to save it. Add your name, phone and DRE# in the space at the bottom.</p></div></section>';
   }
   function pageTech() {
-    var cards = (C.tech || []).map(function (t) {
-      var light = /zipform|esign/i.test(t.img || '');
-      var logo = t.img ? '<img src="' + h(t.img) + '" alt="">' : '<div class="word">' + h(t.word || t.title) + '</div>';
-      return '<a class="tech-card" href="' + h(t.href) + '" target="_blank" rel="noopener"><div class="logo-box' + (light ? ' on-dark' : '') + '">' + logo + '</div><div class="dash"></div><h3>' + h(t.title) + '</h3><p>' + h(t.sub) + '</p></a>';
-    }).join('');
     return pageHero('TECHNOLOGY', 'assets/banners/technology.jpg') +
-      '<section class="section"><div class="wrap"><div class="tech-grid">' + cards + '</div></div></section>';
+      '<section class="section"><div class="wrap">' + shotGrid(C.site && C.site.technology) + '</div></section>';
   }
   function pageListings() {
     var L = (C.site && C.site.listing) || {};
