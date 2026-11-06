@@ -119,6 +119,22 @@
   function shotGrid(items) {
     return '<div class="shot-grid">' + (items || []).map(shotLink).join('') + '</div>';
   }
+  function templateBars(items) {
+    return '<div class="tpl-bars">' + (items || []).map(function (t) {
+      var href = t.href || '#/';
+      var ext = t.ext || /^https?:|^mailto:/i.test(href);
+      var open = ext ? ' target="_blank" rel="noopener"' : '';
+      var title = t.title || '';
+      var sub = t.sub || '';
+      if (!title && t.alt) {
+        var bits = String(t.alt).split(/\.\s+/);
+        title = bits.shift() || '';
+        if (!sub) sub = bits.join('. ');
+      }
+      return '<a class="tpl-bar" href="' + h(href) + '"' + open + '><span class="dash"></span><span class="t">' + h(title) + '</span>' +
+        (sub ? '<span class="s">' + h(sub) + '</span>' : '') + '</a>';
+    }).join('') + '</div>';
+  }
   function footerHtml() {
     return '<div class="foot-wrap"><footer class="foot">' +
       '<div><img src="assets/logo-white.png" alt="ENESMA Realty" style="height:48px;width:auto">' +
@@ -236,7 +252,7 @@
     return pageHero('MARKETING', 'assets/banners/marketing.jpg') +
       '<section class="section"><div class="wrap">' +
       sectionHead('Templates', 'Canva designs and holiday graphics.') +
-      shotGrid(C.site && C.site.marketing) +
+      templateBars(C.site && C.site.marketing) +
       '<div style="height:56px"></div>' +
       sectionHead('Logos', '') +
       '<p class="save-hint">Press and hold a wordmark, or right-click it, to save the image.</p>' +
