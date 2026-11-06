@@ -205,7 +205,7 @@
       'assets/hero/joshua-tree.mp4'
     ];
     return '<div class="hero-videos" aria-hidden="true">' + clips.map(function (src, i) {
-      return '<video muted playsinline webkit-playsinline' + (i === 0 ? ' autoplay' : '') + ' preload="' + (i === 0 ? 'auto' : 'metadata') + '"><source src="' + src + '" type="video/mp4"></video>';
+      return '<video' + (i === 0 ? ' class="on" autoplay' : '') + ' muted playsinline webkit-playsinline preload="' + (i === 0 ? 'auto' : 'metadata') + '"><source src="' + src + '" type="video/mp4"></video>';
     }).join('') + '</div>';
   }
   function pageHome() {
@@ -1014,15 +1014,15 @@
     var fading = false;
     var fadeMs = 1600;
     function showTap() {
-      vids.forEach(function (v) { v.classList.remove('on'); });
-      box.classList.add('off');
+      box.classList.remove('off');
+      if (vids[i]) vids[i].classList.add('on');
       if (hero) hero.classList.add('needs-gesture');
     }
     function clearTap() {
       if (hero) hero.classList.remove('needs-gesture');
     }
     function reveal(v) {
-      if (!v || v.paused || v !== vids[i]) return;
+      if (!v || v !== vids[i]) return;
       box.classList.remove('off');
       v.classList.add('on');
       clearTap();
@@ -1035,25 +1035,28 @@
       v.muted = true;
       v.defaultMuted = true;
       v.playsInline = true;
+      v.setAttribute('muted', '');
+      v.setAttribute('playsinline', '');
+      v.setAttribute('webkit-playsinline', '');
       v.removeAttribute('poster');
+      box.classList.remove('off');
+      v.classList.add('on');
       var p = v.play();
       if (p && p.then) {
         p.then(function () { reveal(v); }).catch(function (err) {
           if (err && err.name === 'AbortError') return;
           if (autoplayBlocked(err)) showTap();
-          else {
-            v.classList.remove('on');
-            box.classList.add('off');
-          }
         });
+      } else {
+        reveal(v);
       }
       return p;
     }
     function startFromGesture() {
       var v = vids[i] || vids[0];
       if (!v) return;
-      v.classList.remove('on');
       box.classList.remove('off');
+      v.classList.add('on');
       play(v);
     }
     function goNext() {
@@ -1063,7 +1066,7 @@
       var n = (i + 1) % vids.length;
       var next = vids[n];
       try { next.currentTime = 0; } catch (e) {}
-      next.classList.remove('on');
+      next.classList.add('on');
       i = n;
       play(next);
       setTimeout(function () {
@@ -1076,11 +1079,24 @@
       v.muted = true;
       v.defaultMuted = true;
       v.playsInline = true;
+      v.setAttribute('muted', '');
+      v.setAttribute('playsinline', '');
+      v.setAttribute('webkit-playsinline', '');
       v.removeAttribute('poster');
       v.onplaying = function () { reveal(v); };
       v.onerror = function () {
+        if (v !== vids[i] || v._heroSkipped) return;
+        v._heroSkipped = true;
         v.classList.remove('on');
-        box.classList.add('off');
+        var n = (i + 1) % vids.length;
+        if (n === i) {
+          v.classList.add('on');
+          return;
+        }
+        i = n;
+        vids[i].classList.add('on');
+        box.classList.remove('off');
+        play(vids[i]);
       };
       v.ontimeupdate = function () {
         if (v !== vids[i] || fading || !isFinite(v.duration)) return;
@@ -1088,6 +1104,8 @@
       };
       v.onended = function () { if (v === vids[i]) goNext(); };
     });
+    box.classList.remove('off');
+    vids[0].classList.add('on');
     play(vids[0]);
     if (hero) {
       hero.addEventListener('click', function () {
@@ -1098,8 +1116,10 @@
     if ('IntersectionObserver' in window && qs('.hero')) {
       var io = new IntersectionObserver(function (ents) {
         var vis = ents[0] && ents[0].isIntersecting;
-        if (!vis) vids.forEach(function (v) { v.pause(); });
-        else if (!box.classList.contains('off')) play(vids[i]);
+        if (!vis) {
+          if (hero && hero.getBoundingClientRect().height < 8) return;
+          vids.forEach(function (v) { v.pause(); });
+        } else play(vids[i]);
       }, { threshold: 0.2 });
       io.observe(qs('.hero'));
     }
