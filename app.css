@@ -183,7 +183,9 @@ button, input { font: inherit; }
 }
 .shot-single { width: min(920px, 100%); margin: 0 auto; }
 .logo-pair { margin-bottom: 56px; }
-.logo-card { margin: 0; }
+.logo-card { margin: 0; border-radius: 8px; }
+.logo-card.dark { background: #000007; }
+.logo-card.light { background: #fff; border: 1px solid #ececec; }
 .logo-card img {
   width: 100%; height: auto; display: block;
   -webkit-touch-callout: default;
