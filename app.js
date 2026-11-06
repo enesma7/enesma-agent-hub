@@ -187,11 +187,11 @@
   }
 
   function heroVideos() {
-    // Laguna Beach aerial, Don Ramey Logan, CC BY-SA 4.0.
-    // Downtown Los Angeles sunrise aerial, CC BY 3.0.
-    // Catalina Island harbor, CC BY 3.0.
-    // Joshua Tree night, public domain.
-    // Snow on Mt. San Bernardino above Big Bear, CC BY-SA 2.0.
+    // Malibu Pier / Pacific coast drone. Southern California coast, no people.
+    // Downtown Los Angeles and the 6th Street Viaduct, aerial.
+    // Dana Point Harbor aerial. Southern California harbor, no people.
+    // Snowy mountain aerial. Southern California mountain snow, no people.
+    // Joshua Tree National Park scenic, no people.
     var clips = [
       'assets/hero/laguna-coast.mp4',
       'assets/hero/la-skyline.mp4',
