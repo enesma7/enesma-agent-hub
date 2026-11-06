@@ -566,7 +566,7 @@ window.HUB_CONTENT = {
         { "label": "Instagram", "href": "https://www.instagram.com/my_realtor_lilia/" },
         { "label": "Zillow", "href": "https://www.zillow.com/profile/Lilia%20Amador#reviews" }
       ],
-      "bioHtml": ""
+      "bioHtml": "<p>When it comes to Real Estate look no futher than me .I offer good old fashioned customer service with todays technology .</p>"
     }
   ],
   "refer": {
