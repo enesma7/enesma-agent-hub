@@ -784,6 +784,11 @@
     var tap = hero ? qs('.hero-tap', hero) : null;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       box.classList.add('off');
+      qsa('video', box).forEach(function (v) {
+        v.removeAttribute('autoplay');
+        v.removeAttribute('poster');
+        try { v.pause(); } catch (e) {}
+      });
       return;
     }
     var vids = qsa('video', box);
@@ -792,11 +797,18 @@
     var fading = false;
     var fadeMs = 1600;
     function showTap() {
+      vids.forEach(function (v) { v.classList.remove('on'); });
       box.classList.add('off');
       if (hero) hero.classList.add('needs-gesture');
     }
     function clearTap() {
       if (hero) hero.classList.remove('needs-gesture');
+    }
+    function reveal(v) {
+      if (!v || v.paused || v !== vids[i]) return;
+      box.classList.remove('off');
+      v.classList.add('on');
+      clearTap();
     }
     function autoplayBlocked(err) {
       if (!err || err.name === 'NotAllowedError') return true;
@@ -806,12 +818,16 @@
       v.muted = true;
       v.defaultMuted = true;
       v.playsInline = true;
+      v.removeAttribute('poster');
       var p = v.play();
       if (p && p.then) {
-        p.then(function () { clearTap(); }).catch(function (err) {
+        p.then(function () { reveal(v); }).catch(function (err) {
           if (err && err.name === 'AbortError') return;
           if (autoplayBlocked(err)) showTap();
-          else box.classList.add('off');
+          else {
+            v.classList.remove('on');
+            box.classList.add('off');
+          }
         });
       }
       return p;
@@ -819,8 +835,8 @@
     function startFromGesture() {
       var v = vids[i] || vids[0];
       if (!v) return;
+      v.classList.remove('on');
       box.classList.remove('off');
-      v.classList.add('on');
       play(v);
     }
     function goNext() {
@@ -830,9 +846,9 @@
       var n = (i + 1) % vids.length;
       var next = vids[n];
       try { next.currentTime = 0; } catch (e) {}
-      next.classList.add('on');
-      play(next);
+      next.classList.remove('on');
       i = n;
+      play(next);
       setTimeout(function () {
         cur.classList.remove('on');
         cur.pause();
@@ -844,14 +860,17 @@
       v.defaultMuted = true;
       v.playsInline = true;
       v.removeAttribute('poster');
-      v.onerror = function () { box.classList.add('off'); };
+      v.onplaying = function () { reveal(v); };
+      v.onerror = function () {
+        v.classList.remove('on');
+        box.classList.add('off');
+      };
       v.ontimeupdate = function () {
         if (v !== vids[i] || fading || !isFinite(v.duration)) return;
         if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
       };
       v.onended = function () { if (v === vids[i]) goNext(); };
     });
-    vids[0].classList.add('on');
     play(vids[0]);
     if (tap) {
       tap.addEventListener('click', function (e) {
