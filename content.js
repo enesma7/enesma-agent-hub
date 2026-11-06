@@ -640,14 +640,14 @@ window.HUB_CONTENT = {
       { "img": "assets/sites/compliance-05.jpg", "href": "#/compliance/office-policies", "alt": "Office Policies. Procedures & compliance", "title": "Office Policies", "sub": "Procedures & compliance" }
     ],
     "marketing": [
-      { "img": "assets/sites/tpl-holidays.jpg", "href": "#/marketing-templates/holidays", "alt": "Holidays. Tap to play. Press and hold to save to your phone. Add your photo and info in the empty space at the bottom.", "title": "Holidays", "sub": "Tap to play. Press and hold to save to your phone. Add your photo and info in the empty space at the bottom." },
-      { "img": "assets/sites/tpl-just-listed.jpg", "href": "https://www.canva.com/d/64BPKTuts5rDZBb", "ext": true, "alt": "Just Listed. New listing announcements", "title": "Just Listed", "sub": "New listing announcements" },
-      { "img": "assets/sites/tpl-open-house.jpg", "href": "https://www.canva.com/d/qFj7fK9tmUXN1D6", "ext": true, "alt": "Open House. Open house stories", "title": "Open House", "sub": "Open house stories" },
-      { "img": "assets/sites/tpl-escrow.jpg", "href": "https://www.canva.com/d/yPcu-VutS3-LN8I", "ext": true, "alt": "In Escrow. In-escrow announcements", "title": "In Escrow", "sub": "In-escrow announcements" },
-      { "img": "assets/sites/tpl-sold.jpg", "href": "https://www.canva.com/d/-wPqZ3vqCepP3zP", "ext": true, "alt": "Sold. Sold announcements", "title": "Sold", "sub": "Sold announcements" },
-      { "img": "assets/sites/tpl-card.jpg", "href": "https://www.canva.com/folder/FAHXRGyUyy0", "ext": true, "alt": "Business Card. ENESMA-branded cards", "title": "Business Card", "sub": "ENESMA-branded cards" },
-      { "img": "assets/sites/tpl-email.jpg", "href": "https://www.canva.com/folder/FAHXRGyUyy0", "ext": true, "alt": "Email Signature. DRE-compliant signatures", "title": "Email Signature", "sub": "DRE-compliant signatures" },
-      { "img": "assets/sites/tpl-decks.jpg", "href": "https://www.canva.com/folder/FAHXRHXspD4", "ext": true, "alt": "Presentations. Listing & buyer decks", "title": "Presentations", "sub": "Listing & buyer decks" }
+      { "img": "assets/sites/tpl-holidays.jpg", "href": "#/marketing-templates/holidays", "alt": "Holidays", "title": "Holidays" },
+      { "img": "assets/sites/tpl-just-listed.jpg", "href": "https://www.canva.com/d/64BPKTuts5rDZBb", "ext": true, "alt": "Just Listed", "title": "Just Listed" },
+      { "img": "assets/sites/tpl-open-house.jpg", "href": "https://www.canva.com/d/qFj7fK9tmUXN1D6", "ext": true, "alt": "Open House", "title": "Open House" },
+      { "img": "assets/sites/tpl-escrow.jpg", "href": "https://www.canva.com/d/yPcu-VutS3-LN8I", "ext": true, "alt": "In Escrow", "title": "In Escrow" },
+      { "img": "assets/sites/tpl-sold.jpg", "href": "https://www.canva.com/d/-wPqZ3vqCepP3zP", "ext": true, "alt": "Sold", "title": "Sold" },
+      { "img": "assets/sites/tpl-card.jpg", "href": "https://www.canva.com/folder/FAHXRGyUyy0", "ext": true, "alt": "Business Card", "title": "Business Card" },
+      { "img": "assets/sites/tpl-email.jpg", "href": "https://www.canva.com/folder/FAHXRGyUyy0", "ext": true, "alt": "Email Signature", "title": "Email Signature" },
+      { "img": "assets/sites/tpl-decks.jpg", "href": "https://www.canva.com/folder/FAHXRHXspD4", "ext": true, "alt": "Presentations", "title": "Presentations" }
     ],
     "technology": [
       { "img": "assets/sites/technology-01.jpg", "href": "https://go.crmls.org", "ext": true, "alt": "CRMLS. MLS search, listings & Matrix" },
