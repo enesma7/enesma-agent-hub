@@ -143,6 +143,8 @@ button, input { font: inherit; }
 .logo-stage img { height: 64px; width: auto; }
 .logo-stage.dark { background: var(--black); }
 .logo-stage.light { background: var(--white); border: 1px solid #ececec; }
+.logo-card { margin: 0; }
+.logo-card figcaption h3 { margin: 0 0 6px; font-size: 18px; }
 .train-note { margin-top: 48px; }
 
 /* ---------- Tiles ---------- */
