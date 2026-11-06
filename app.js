@@ -247,7 +247,10 @@
       { src: 'assets/logo-red.png', name: 'Illyrian Red', tone: 'light' },
       { src: 'assets/logo-gold-foil.png', name: 'Gold Foil', tone: 'dark' }
     ].map(function (l) {
-      return '<figure class="logo-card ' + l.tone + '"><img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark"></figure>';
+      var stage = l.tone === 'dark'
+        ? 'background:#000007;padding:36px 32px'
+        : 'background:#ffffff;padding:36px 32px;border:1px solid #ececec';
+      return '<figure class="logo-card ' + l.tone + '" style="' + stage + '"><img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark"></figure>';
     }).join('');
     return pageHero('MARKETING', 'assets/banners/marketing.jpg') +
       '<section class="section"><div class="wrap">' +
