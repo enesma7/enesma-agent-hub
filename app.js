@@ -186,6 +186,21 @@
     return '<div class="search-scrim" id="searchScrim"><div class="search-box"><input id="searchIn" type="search" placeholder="Search the Hub" autofocus><div id="searchHits"></div></div></div>';
   }
 
+  function heroVideos() {
+    // Laguna Beach aerial, Don Ramey Logan, CC BY-SA 4.0.
+    // Downtown Los Angeles sunrise aerial, CC BY 3.0.
+    // Catalina Island harbor, CC BY 3.0.
+    // Joshua Tree night, public domain.
+    var clips = [
+      'assets/hero/laguna-coast.mp4',
+      'assets/hero/la-skyline.mp4',
+      'assets/hero/catalina.mp4',
+      'assets/hero/joshua-tree.mp4'
+    ];
+    return '<div class="hero-videos" aria-hidden="true">' + clips.map(function (src, i) {
+      return '<video muted playsinline' + (i === 0 ? ' autoplay' : '') + ' preload="' + (i === 0 ? 'auto' : 'metadata') + '" poster="assets/hero.jpg"><source src="' + src + '" type="video/mp4"></video>';
+    }).join('') + '</div>';
+  }
   function pageHome() {
     var ev = upcomingEvents();
     var evHtml = ev.length ? ev.map(function (e) {
@@ -193,7 +208,7 @@
         '<div class="cap"><div class="date">' + h(e.mon) + '<b>' + h(e.day) + '</b></div>' +
         '<div class="dash"></div><h3>' + h(e.title) + '</h3><p>' + h(e.meta) + '</p></div></a>';
     }).join('') : '<p class="note" style="text-align:center">No upcoming free C.A.R. or CVAR events in the next 30 days.</p>';
-    return '<section class="hero" style="background-image:url(\'assets/hero.jpg\')"><img class="lockup" src="assets/hero-lockup.png" alt="ENESMA Realty Agent Hub. Underpromise &amp; Overdeliver."></section>' +
+    return '<section class="hero" style="background-image:url(\'assets/hero.jpg\')">' + heroVideos() + '<img class="lockup" src="assets/hero-lockup.png" alt="ENESMA Realty Agent Hub. Underpromise &amp; Overdeliver."></section>' +
       '<section class="section"><div class="wrap">' + sectionHead('Agent Resources', 'Forms, tools, and support to help you close with confidence.') + shotGrid(C.site && C.site.home) + '</div></section>' +
       '<section class="section" style="padding-top:0"><div class="wrap">' + sectionHead('Upcoming Events', '') +
       (ev.length ? '<div class="grid-2">' + evHtml + '</div>' : evHtml) + '</div></section>' +
@@ -556,11 +571,63 @@
     }
   }
 
+  function bindHeroVideos() {
+    var box = qs('.hero-videos');
+    if (!box) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      box.classList.add('off');
+      return;
+    }
+    var vids = qsa('video', box);
+    if (!vids.length) return;
+    var i = 0;
+    var fading = false;
+    var fadeMs = 1600;
+    function play(v) {
+      var p = v.play();
+      if (p && p.catch) p.catch(function () { box.classList.add('off'); });
+    }
+    function goNext() {
+      if (fading || box.classList.contains('off')) return;
+      fading = true;
+      var cur = vids[i];
+      var n = (i + 1) % vids.length;
+      var next = vids[n];
+      try { next.currentTime = 0; } catch (e) {}
+      next.classList.add('on');
+      play(next);
+      i = n;
+      setTimeout(function () {
+        cur.classList.remove('on');
+        cur.pause();
+        fading = false;
+      }, fadeMs);
+    }
+    vids.forEach(function (v) {
+      v.onerror = function () { box.classList.add('off'); };
+      v.ontimeupdate = function () {
+        if (v !== vids[i] || fading || !isFinite(v.duration)) return;
+        if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
+      };
+      v.onended = function () { if (v === vids[i]) goNext(); };
+    });
+    vids[0].classList.add('on');
+    play(vids[0]);
+    if ('IntersectionObserver' in window && qs('.hero')) {
+      var io = new IntersectionObserver(function (ents) {
+        var vis = ents[0] && ents[0].isIntersecting;
+        if (!vis) vids.forEach(function (v) { v.pause(); });
+        else if (!box.classList.contains('off')) play(vids[i]);
+      }, { threshold: 0.2 });
+      io.observe(qs('.hero'));
+    }
+  }
   function renderApp() {
     view = 'app';
     document.title = titles() + ' · ENESMA Realty';
     $app.innerHTML = headerHtml() + pageFor(path()) + footerHtml() + searchOverlay();
     bindChrome();
+    bindHeroVideos();
     var stage = qs('[data-calc]');
     if (stage && window.HubCalcs) {
       var mount = HubCalcs[stage.getAttribute('data-calc')];
