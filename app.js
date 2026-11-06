@@ -8,6 +8,10 @@
   var otpCh = null;
   var searchOpen = false;
   var holidayCleanups = [];
+  var holidayFiles = {};
+  var holidayFileTasks = {};
+  var holidayPrefetchQueue = [];
+  var holidayPrefetchActive = 0;
 
   function h(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -290,7 +294,8 @@
       var file = (src.split('/').pop() || 'holiday.mp4');
       return '<figure class="holiday-tile" data-title="' + h(title) + '" data-state="paused">' +
         '<div class="holiday-stage">' +
-        '<video playsinline webkit-playsinline muted loop preload="metadata" disablepictureinpicture disableremoteplayback poster="' + h(poster) + '" src="' + h(src) + '"></video>' +
+        '<img class="holiday-poster" src="' + h(poster) + '" alt="" width="1080" height="1920" draggable="false">' +
+        '<video playsinline webkit-playsinline muted loop preload="metadata" disablepictureinpicture disableremoteplayback width="1080" height="1920" poster="' + h(poster) + '" src="' + h(src) + '"></video>' +
         '<button type="button" class="holiday-play" aria-label="Play ' + h(title) + '" aria-pressed="false">' +
         '<span class="holiday-cue" aria-hidden="true">TAP TO PLAY · HOLD TO SAVE</span></button>' +
         '</div>' +
@@ -300,7 +305,7 @@
     }).join('');
     return pageHero('HOLIDAYS', 'assets/banners/holidays.jpg') +
       '<section class="section"><div class="wrap">' +
-      '<p class="save-hint">Tap to play. Press and hold to save to your phone. Add your photo and info in the empty space at the bottom.</p>' +
+      '<p class="save-hint">Tap to play. Press and hold, or tap Download, to save the video to your phone. Add your photo and info in the empty space at the bottom.</p>' +
       '<div class="holidays">' + figs + '</div>' +
       '</div></section>';
   }
@@ -310,24 +315,143 @@
     });
     holidayCleanups = [];
   }
+  function holidayFileName(url, fallback) {
+    var clean = String(url || '').split('?')[0].split('#')[0];
+    var name = clean.split('/').pop() || fallback || 'holiday.mp4';
+    try { name = decodeURIComponent(name); } catch (e) {}
+    if (!/\.mp4$/i.test(name)) name += '.mp4';
+    return name;
+  }
+  function holidaySaveOpensTab() {
+    var ua = navigator.userAgent || '';
+    var plat = navigator.platform || '';
+    if (/iPad|iPhone|iPod/i.test(ua)) return true;
+    return plat === 'MacIntel' && navigator.maxTouchPoints > 1;
+  }
+  function canShareHolidayFile(file) {
+    if (!file || !navigator.share || !navigator.canShare) return false;
+    try { return navigator.canShare({ files: [file] }); }
+    catch (e) { return false; }
+  }
+  function startHolidayPrefetch(job) {
+    holidayPrefetchActive += 1;
+    holidayFileTasks[job.url] = fetch(job.url, { credentials: 'same-origin' })
+      .then(function (res) {
+        if (!res.ok) throw new Error('video fetch failed');
+        return res.blob();
+      })
+      .then(function (blob) {
+        var type = (blob && blob.type && blob.type.indexOf('video/') === 0) ? blob.type : 'video/mp4';
+        var file = new File([blob], job.filename, { type: type });
+        holidayFiles[job.url] = file;
+        return file;
+      })
+      .catch(function () {
+        delete holidayFileTasks[job.url];
+      })
+      .then(function () {
+        holidayPrefetchActive -= 1;
+        pumpHolidayPrefetch();
+      });
+  }
+  function pumpHolidayPrefetch() {
+    while (holidayPrefetchActive < 2 && holidayPrefetchQueue.length) {
+      var job = holidayPrefetchQueue.shift();
+      if (!job || !job.url || holidayFiles[job.url] || holidayFileTasks[job.url]) continue;
+      startHolidayPrefetch(job);
+    }
+  }
+  function prioritizeHolidayPrefetch(url, filename) {
+    if (!url || holidayFiles[url] || holidayFileTasks[url]) return;
+    holidayPrefetchQueue = holidayPrefetchQueue.filter(function (job) { return job.url !== url; });
+    holidayPrefetchQueue.unshift({ url: url, filename: filename || holidayFileName(url) });
+    pumpHolidayPrefetch();
+  }
+  function openHolidayVideo(url) {
+    var opened = null;
+    try { opened = window.open(url, '_blank'); } catch (e) {}
+    if (opened) {
+      try { opened.opener = null; } catch (e2) {}
+      return;
+    }
+    window.location.assign(url);
+  }
+  function downloadHolidayFile(url, filename) {
+    var a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', filename || holidayFileName(url));
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      if (a.parentNode) a.parentNode.removeChild(a);
+    }, 0);
+  }
+  function saveHolidayVideo(url, filename, title) {
+    if (!url) return;
+    var name = filename || holidayFileName(url);
+    var file = holidayFiles[url];
+    // Share needs the File already in hand. Awaiting a fetch drops the iOS user gesture.
+    if (file && canShareHolidayFile(file)) {
+      var payload = { files: [file] };
+      if (title) payload.title = title;
+      try {
+        var shared = navigator.share(payload);
+        if (shared && typeof shared.catch === 'function') {
+          shared.catch(function (err) {
+            if (err && err.name === 'AbortError') return;
+            if (holidaySaveOpensTab()) openHolidayVideo(url);
+            else downloadHolidayFile(url, name);
+          });
+        }
+      } catch (err) {
+        if (holidaySaveOpensTab()) openHolidayVideo(url);
+        else downloadHolidayFile(url, name);
+      }
+      return;
+    }
+    prioritizeHolidayPrefetch(url, name);
+    if (holidaySaveOpensTab()) {
+      openHolidayVideo(url);
+      return;
+    }
+    downloadHolidayFile(url, name);
+  }
+  function primeHolidayVideo(video) {
+    video.muted = true;
+    video.defaultMuted = true;
+    video.setAttribute('muted', '');
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', '');
+    video.loop = true;
+    video.autoplay = false;
+    video.controls = false;
+    video.removeAttribute('controls');
+  }
   function bindHolidayTiles() {
     var root = qs('.holidays');
     if (!root) return;
     var HOLD_MS = 500;
-    var MOVE_PX = 10;
+    var MOVE_PX = 14;
     qsa('.holiday-tile', root).forEach(function (tile) {
       var stage = qs('.holiday-stage', tile);
       var video = qs('video', tile);
+      var poster = qs('.holiday-poster', tile);
+      var link = qs('.holiday-dl', tile);
       if (!stage || !video) return;
-      video.muted = true;
-      video.defaultMuted = true;
-      video.playsInline = true;
-      video.loop = true;
-      video.autoplay = false;
-      video.controls = false;
+      primeHolidayVideo(video);
+      var info = {
+        url: (link && link.getAttribute('href')) || video.getAttribute('src') || '',
+        filename: (link && link.getAttribute('download')) || '',
+        title: tile.getAttribute('data-title') || 'Holiday'
+      };
+      if (!info.filename) info.filename = holidayFileName(info.url);
       var timer = null;
       var down = false;
       var armed = false;
+      var moved = false;
       var suppressClick = false;
       var startX = 0;
       var startY = 0;
@@ -342,86 +466,127 @@
       function blockNextClick() {
         suppressClick = true;
       }
+      function fitFrame() {
+        var rect = stage.getBoundingClientRect();
+        var w = rect.width;
+        var h = rect.height;
+        if (!w || !h) return;
+        [poster, video].forEach(function (el) {
+          if (!el) return;
+          el.style.position = 'absolute';
+          el.style.left = '0';
+          el.style.top = '0';
+          el.style.width = w + 'px';
+          el.style.height = h + 'px';
+          el.style.maxWidth = 'none';
+          el.style.objectFit = 'contain';
+          el.style.objectPosition = 'center center';
+        });
+      }
       function sync() {
         var playing = !video.paused && !video.ended;
         tile.setAttribute('data-state', playing ? 'playing' : 'paused');
         var btn = qs('.holiday-play', tile);
-        var title = tile.getAttribute('data-title') || 'holiday story';
         if (!btn) return;
         btn.setAttribute('aria-pressed', playing ? 'true' : 'false');
-        btn.setAttribute('aria-label', (playing ? 'Pause ' : 'Play ') + title);
+        btn.setAttribute('aria-label', (playing ? 'Pause ' : 'Play ') + info.title);
       }
-      function save() {
-        if (savedAt && (Date.now() - savedAt) < 900) return;
+      function togglePlay() {
+        primeHolidayVideo(video);
+        if (!video.paused && !video.ended) {
+          video.pause();
+          sync();
+          return;
+        }
+        qsa('video', root).forEach(function (other) {
+          if (other !== video) other.pause();
+        });
+        tile.setAttribute('data-state', 'playing');
+        video.classList.add('is-shown');
+        var pending = video.play();
+        if (pending && typeof pending.then === 'function') {
+          pending.then(function () {
+            video.classList.add('is-shown');
+            sync();
+          }).catch(function (err) {
+            if (video.paused) video.classList.remove('is-shown');
+            if (err && err.name === 'AbortError') {
+              sync();
+              return;
+            }
+            sync();
+          });
+        } else {
+          sync();
+        }
+      }
+      function save(force) {
+        if (!force && savedAt && (Date.now() - savedAt) < 900) return;
         savedAt = Date.now();
-        var link = qs('.holiday-dl', tile);
-        if (!link) return;
-        var a = document.createElement('a');
-        a.href = link.getAttribute('href');
-        var name = link.getAttribute('download') || '';
-        if (name) a.setAttribute('download', name);
-        a.rel = 'noopener';
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function () {
-          if (a.parentNode) a.parentNode.removeChild(a);
-        }, 0);
+        saveHolidayVideo(info.url, info.filename, info.title);
       }
-      function cancelPress() {
-        if (!down && !armed) return;
+      function cancelHold() {
         down = false;
         armed = false;
         stage.classList.remove('is-holding');
         clearTimer();
-        blockNextClick();
       }
       function onPointerDown(e) {
-        if (e.button !== 0) return;
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
         clearTimer();
         down = true;
         armed = false;
+        moved = false;
         suppressClick = false;
         startX = e.clientX;
         startY = e.clientY;
         startedAt = Date.now();
         stage.classList.remove('is-holding');
+        prioritizeHolidayPrefetch(info.url, info.filename);
         timer = setTimeout(function () {
           timer = null;
-          if (!down) return;
+          if (!down || moved) return;
           armed = true;
           stage.classList.add('is-holding');
-          blockNextClick();
-          save();
         }, HOLD_MS);
       }
       function onPointerMove(e) {
         if (!down) return;
         var dx = e.clientX - startX;
         var dy = e.clientY - startY;
-        if ((dx * dx + dy * dy) > (MOVE_PX * MOVE_PX)) cancelPress();
+        if ((dx * dx + dy * dy) > (MOVE_PX * MOVE_PX)) {
+          moved = true;
+          cancelHold();
+        }
       }
-      function onPointerUp() {
-        var held = down && (armed || (Date.now() - startedAt) >= HOLD_MS);
-        clearTimer();
-        down = false;
-        armed = false;
-        stage.classList.remove('is-holding');
+      function onPointerUp(e) {
+        if (!down) return;
+        var held = armed || (Date.now() - startedAt) >= HOLD_MS;
+        var drifted = moved;
+        cancelHold();
+        moved = false;
+        if (drifted) return;
         if (held) {
           blockNextClick();
           save();
+          return;
+        }
+        if (!e.pointerType || e.pointerType !== 'mouse') {
+          blockNextClick();
+          togglePlay();
         }
       }
       function onPointerLeave(e) {
-        if (!down || !e.buttons) return;
-        cancelPress();
+        if (!down) return;
+        if (e.pointerType === 'mouse' && e.buttons) {
+          moved = true;
+          cancelHold();
+        }
       }
       function onContextMenu(e) {
         e.preventDefault();
-        clearTimer();
-        down = false;
-        armed = false;
-        stage.classList.remove('is-holding');
+        cancelHold();
+        moved = false;
         blockNextClick();
         save();
       }
@@ -437,33 +602,36 @@
           e.stopPropagation();
           return;
         }
-        if (!video.paused && !video.ended) {
-          video.pause();
-          sync();
-          return;
-        }
-        qsa('video', root).forEach(function (other) {
-          if (other !== video) other.pause();
-        });
-        video.muted = true;
-        video.playsInline = true;
-        var pending = video.play();
-        sync();
-        if (pending && typeof pending.then === 'function') {
-          pending.then(function () { sync(); }).catch(function () {
-            try { video.pause(); } catch (err) {}
-            sync();
-          });
-        }
+        togglePlay();
       }
       function onKeyDown(e) {
         if (e.key === 'Enter' || e.key === ' ') suppressClick = false;
       }
-      function onMedia() { sync(); }
+      function onDownloadClick(e) {
+        prioritizeHolidayPrefetch(info.url, info.filename);
+        if (holidayFiles[info.url] && canShareHolidayFile(holidayFiles[info.url])) {
+          e.preventDefault();
+          save(true);
+          return;
+        }
+        if (holidaySaveOpensTab()) {
+          e.preventDefault();
+          save(true);
+        }
+      }
+      function onMedia() {
+        if (!video.paused && !video.ended) video.classList.add('is-shown');
+        sync();
+      }
+      function onPointerCancel() {
+        if (!down) return;
+        moved = true;
+        cancelHold();
+      }
       stage.addEventListener('pointerdown', onPointerDown);
       stage.addEventListener('pointermove', onPointerMove);
-      stage.addEventListener('pointerup', onPointerUp);
-      stage.addEventListener('pointercancel', cancelPress);
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerCancel);
       stage.addEventListener('pointerleave', onPointerLeave);
       stage.addEventListener('contextmenu', onContextMenu);
       stage.addEventListener('auxclick', function (e) {
@@ -472,11 +640,61 @@
       });
       stage.addEventListener('click', onClick);
       stage.addEventListener('keydown', onKeyDown);
+      if (link) link.addEventListener('click', onDownloadClick);
       video.addEventListener('play', onMedia);
+      video.addEventListener('playing', onMedia);
       video.addEventListener('pause', onMedia);
       video.addEventListener('ended', onMedia);
+      video.addEventListener('loadedmetadata', fitFrame);
+      fitFrame();
+      requestAnimationFrame(fitFrame);
+      if (window.ResizeObserver) {
+        var ro = new ResizeObserver(fitFrame);
+        ro.observe(stage);
+        holidayCleanups.push(function () { ro.disconnect(); });
+      }
+      if (window.IntersectionObserver) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            prioritizeHolidayPrefetch(info.url, info.filename);
+            io.disconnect();
+          });
+        }, { rootMargin: '200px' });
+        io.observe(tile);
+        holidayCleanups.push(function () { io.disconnect(); });
+      } else {
+        prioritizeHolidayPrefetch(info.url, info.filename);
+      }
       sync();
       holidayCleanups.push(clearTimer);
+      holidayCleanups.push(function () {
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerCancel);
+      });
+    });
+    function onViewport() {
+      qsa('.holiday-stage', root).forEach(function (stage) {
+        var tile = stage.closest ? stage.closest('.holiday-tile') : null;
+        var poster = tile ? qs('.holiday-poster', tile) : null;
+        var video = tile ? qs('video', tile) : null;
+        var rect = stage.getBoundingClientRect();
+        var w = rect.width;
+        var h = rect.height;
+        if (!w || !h) return;
+        [poster, video].forEach(function (el) {
+          if (!el) return;
+          el.style.width = w + 'px';
+          el.style.height = h + 'px';
+          el.style.objectFit = 'contain';
+        });
+      });
+    }
+    window.addEventListener('resize', onViewport);
+    window.addEventListener('orientationchange', onViewport);
+    holidayCleanups.push(function () {
+      window.removeEventListener('resize', onViewport);
+      window.removeEventListener('orientationchange', onViewport);
     });
   }
   function pageTech() {

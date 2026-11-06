@@ -312,38 +312,79 @@ button, input { font: inherit; }
 .swatch .chip { height: 88px; }
 .swatch figcaption { padding: 10px 12px 14px; font-size: 13px; }
 .swatch code { display: block; color: var(--muted); margin-top: 4px; }
-.holidays { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--gap); align-items: start; }
-.holidays figure { margin: 0; }
+.holidays {
+  --holiday-max-h: calc(100vh - var(--nav-h) - 7.5rem);
+  --holiday-max-h: calc(100svh - var(--nav-h) - 7.5rem - env(safe-area-inset-bottom, 0px));
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--gap);
+  align-items: start;
+}
+.holiday-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  min-width: 0;
+  scroll-margin-top: calc(var(--nav-h) + 12px);
+}
+/* Whole 9:16 story stays in view. Side space is fine; the frame is never cropped. */
 .holiday-stage {
   position: relative;
-  width: 100%;
-  background: #000007;
-  border-radius: var(--radius);
-}
-.holidays video {
-  width: 100%;
-  height: auto;
+  width: min(100%, calc(var(--holiday-max-h) * 9 / 16));
+  max-width: 100%;
   aspect-ratio: 9 / 16;
+  margin-inline: auto;
+  background: #000007;
+  overflow: visible;
+  scroll-margin-top: calc(var(--nav-h) + 12px);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+@supports not (aspect-ratio: 9 / 16) {
+  .holiday-stage {
+    box-sizing: content-box;
+    height: 0;
+    padding-top: 177.7778%;
+  }
+}
+.holiday-poster,
+.holidays video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
   object-fit: contain;
-  display: block;
-  border-radius: var(--radius);
+  object-position: center center;
+  border-radius: 0;
   background: #000007;
   pointer-events: none;
 }
+.holiday-poster { z-index: 0; }
+.holidays video {
+  z-index: 1;
+  opacity: 0;
+}
+.holidays video.is-shown { opacity: 1; }
 .holiday-play {
   position: absolute;
   inset: 0;
+  z-index: 2;
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: 0;
   background: transparent;
   color: #FBFBFB;
   cursor: pointer;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 .holiday-play:focus-visible { outline: 2px solid var(--gold-a); outline-offset: -4px; }
 .holiday-stage.is-holding { box-shadow: inset 0 0 0 3px var(--gold-a); }
@@ -364,18 +405,32 @@ button, input { font: inherit; }
   pointer-events: none;
 }
 .holiday-tile[data-state="playing"] .holiday-cue { opacity: 0; }
-.holidays figcaption { margin-top: 8px; font-size: 14px; font-weight: 500; }
-.holiday-dl {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: .04em;
-  color: var(--black);
-  text-decoration: none;
-  border-bottom: 1px solid var(--gold-b);
+.holidays figcaption {
+  width: min(100%, calc(var(--holiday-max-h) * 9 / 16));
+  margin: 8px auto 0;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
 }
-.holiday-dl:focus-visible { outline: 2px solid var(--gold-b); outline-offset: 3px; }
+.holiday-dl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, calc(var(--holiday-max-h) * 9 / 16));
+  min-height: 44px;
+  margin: 10px auto 0;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background-image: var(--gold);
+  color: var(--black);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.holiday-dl:hover { filter: brightness(.97); }
+.holiday-dl:focus-visible { outline: 2px solid var(--black); outline-offset: 3px; }
 .save-hint { text-align: center; color: var(--muted); margin: 28px 0 0; font-size: 14px; }
 .section-head:has(+ .save-hint) { margin-bottom: 0; }
 .section-head + .save-hint { margin: 0 0 12px; }
