@@ -191,10 +191,12 @@
     // Downtown Los Angeles sunrise aerial, CC BY 3.0.
     // Catalina Island harbor, CC BY 3.0.
     // Joshua Tree night, public domain.
+    // Snow on Mt. San Bernardino above Big Bear, CC BY-SA 2.0.
     var clips = [
       'assets/hero/laguna-coast.mp4',
       'assets/hero/la-skyline.mp4',
       'assets/hero/catalina.mp4',
+      'assets/hero/big-bear.mp4',
       'assets/hero/joshua-tree.mp4'
     ];
     return '<div class="hero-videos" aria-hidden="true">' + clips.map(function (src, i) {
