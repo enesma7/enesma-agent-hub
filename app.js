@@ -188,13 +188,13 @@
   }
 
   function heroVideos() {
-    // Coastal cliffs and ocean aerial, no people. Pexels 9758323.
+    // Rancho Palos Verdes / San Pedro sunset drone, no people. Pexels 27954154.
     // Downtown Los Angeles and the 6th Street Viaduct, aerial.
     // Dana Point Harbor aerial. Southern California harbor, no people.
     // Snowy mountain aerial. Southern California mountain snow, no people.
     // Joshua Tree National Park scenic, no people.
     var clips = [
-      'assets/hero/laguna-coast.mp4?v=25',
+      'assets/hero/laguna-coast.mp4?v=27',
       'assets/hero/la-skyline.mp4',
       'assets/hero/catalina.mp4',
       'assets/hero/big-bear.mp4',
