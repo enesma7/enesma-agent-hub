@@ -228,9 +228,13 @@
       { src: 'assets/logo-white.png', name: 'White', stage: 'dark' },
       { src: 'assets/logo-black.png', name: 'Black', stage: 'light' },
       { src: 'assets/logo-gold.png', name: 'Aztec Gold', stage: 'dark' },
-      { src: 'assets/logo-red.png', name: 'Illyrian Red', stage: 'light' }
+      { src: 'assets/logo-red.png', name: 'Illyrian Red', stage: 'light' },
+      { src: 'assets/logo-gold-foil.png', name: 'Gold Foil', stage: 'dark' }
     ].map(function (l) {
-      return '<a class="card-plain logo-dl" href="' + h(l.src) + '" download><span class="logo-stage ' + l.stage + '"><img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark"></span><h3>' + h(l.name) + '</h3></a>';
+      return '<figure class="card-plain logo-card">' +
+        '<span class="logo-stage ' + l.stage + '">' +
+        '<img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark">' +
+        '</span><figcaption><h3>' + h(l.name) + '</h3></figcaption></figure>';
     }).join('');
     return pageHero('MARKETING', 'assets/banners/marketing.jpg') +
       '<section class="section"><div class="wrap">' +
@@ -238,10 +242,10 @@
       shotGrid(C.site && C.site.marketing) +
       '<div style="height:56px"></div>' +
       sectionHead('Logos', '') +
+      '<p class="save-hint">Press and hold a wordmark, or right-click it, to save the image.</p>' +
       '<div class="grid-2 logo-pair">' + logos + '</div>' +
       sectionHead('Colors', '') +
       '<div class="swatches">' + colors + '</div>' +
-      '<p class="save-hint">Press and hold a wordmark, or right-click it, to save the image.</p>' +
       '</div></section>';
   }
   function pageHolidays() {
