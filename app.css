@@ -202,7 +202,7 @@ button, input { font: inherit; }
 .tpl-bars { display: grid; gap: 10px; }
 .tpl-bar {
   display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
-  min-height: 0; padding: 14px 18px; border-radius: var(--radius);
+  min-height: 0; padding: 26px 18px; border-radius: var(--radius);
   background: #000007; color: var(--white); text-decoration: none;
 }
 .tpl-bar .dash { width: 36px; height: 2px; background-image: var(--gold); margin: 0 0 8px; }
