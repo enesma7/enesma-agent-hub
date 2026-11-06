@@ -109,7 +109,7 @@ button, input { font: inherit; }
 
 /* ---------- Page chrome ---------- */
 .hero {
-  position: relative; min-height: 420px; display: grid; place-items: center; overflow: hidden;
+  position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden;
   background: #000007 center/cover no-repeat; color: var(--white); text-align: center;
 }
 .hero-videos { position: absolute; inset: 0; z-index: 0; }
@@ -120,7 +120,7 @@ button, input { font: inherit; }
 .hero-videos video.on { opacity: 1; }
 .hero-videos.off { visibility: hidden; }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(0,0,7,.68); }
-.hero .lockup { position: relative; z-index: 2; width: min(520px, 82vw); padding: 48px 16px; }
+.hero .lockup { position: relative; z-index: 2; width: min(400px, 78vw); height: auto; padding: 18px 16px 20px; }
 .page-hero {
   position: relative; min-height: 220px; display: grid; place-items: center;
   background: var(--black) center/cover no-repeat; color: var(--white);
@@ -418,7 +418,8 @@ button, input { font: inherit; }
   .agent, .listing-card { grid-template-columns: 1fr; }
   .listing-card div { padding: 8px 16px 20px; }
   .wrap { width: min(var(--max), calc(100% - 32px)); }
-  .hero { min-height: 340px; }
+  .hero { min-height: 0; }
+  .hero .lockup { width: min(340px, 84vw); padding: 14px 12px 16px; }
   .pills { gap: 12px; margin-bottom: 36px; max-width: calc(100% - 32px); }
   .pill { width: min(168px, 42vw); }
 }
