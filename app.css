@@ -311,15 +311,19 @@ button, input { font: inherit; }
 .section-head:has(+ .save-hint) { margin-bottom: 0; }
 .section-head + .save-hint { margin: 0 0 12px; }
 .hub-frame { width: 100%; height: calc(100vh - 88px); min-height: 640px; border: 0; border-radius: var(--radius); background: #fff; display: block; }
-.tech-card img { max-height: 64px; max-width: 70%; object-fit: contain; }
-.tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 36px var(--gap); }
-.tech-card { text-align: center; text-decoration: none; color: inherit; padding: 12px 8px 20px; }
-.tech-card .logo-box { height: 92px; display: grid; place-items: center; margin: 0 0 14px; }
-.tech-card img { max-height: 64px; max-width: 72%; width: auto; margin: 0 auto; object-fit: contain; }
+.tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px var(--gap); }
+.tech-card { text-align: center; text-decoration: none; color: inherit; padding: 8px 10px 28px; }
+.tech-card .logo-box { height: 96px; display: grid; place-items: center; margin: 0 auto 18px; }
+.tech-card .logo-box.on-dark {
+  width: min(100%, 260px); height: 96px; padding: 16px 18px;
+  background: #000007; border-radius: 12px;
+}
+.tech-card img { max-height: 64px; max-width: 78%; width: auto; margin: 0 auto; object-fit: contain; }
+.tech-card .logo-box.on-dark img { max-height: 54px; max-width: 92%; }
 .tech-card .word { font-size: 28px; font-weight: 600; letter-spacing: .02em; }
-.tech-card .dash { width: 36px; height: 2px; background-image: var(--gold); margin: 0 auto 12px; }
-.tech-card h3 { margin: 0 0 6px; font-size: 20px; font-weight: 500; }
-.tech-card p { margin: 0; color: var(--muted); font-size: 14px; }
+.tech-card .dash { width: 36px; height: 2px; background-image: var(--gold); margin: 0 auto 14px; }
+.tech-card h3 { margin: 0 0 12px; font-size: 20px; font-weight: 500; line-height: 1.25; }
+.tech-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .agent { display: grid; grid-template-columns: 280px 1fr; gap: 36px; align-items: start; }
 .agent img { width: 100%; border-radius: var(--radius); }
 .agent h2 { margin: 0 0 6px; font-size: 28px; font-weight: 500; }
