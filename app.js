@@ -130,14 +130,8 @@
       var ext = t.ext || /^https?:|^mailto:/i.test(href);
       var open = ext ? ' target="_blank" rel="noopener"' : '';
       var title = t.title || '';
-      var sub = t.sub || '';
-      if (!title && t.alt) {
-        var bits = String(t.alt).split(/\.\s+/);
-        title = bits.shift() || '';
-        if (!sub) sub = bits.join('. ');
-      }
-      return '<a class="tpl-bar" href="' + h(href) + '"' + open + '><span class="dash"></span><span class="t">' + h(title) + '</span>' +
-        (sub ? '<span class="s">' + h(sub) + '</span>' : '') + '</a>';
+      if (!title && t.alt) title = String(t.alt).split(/\.\s+/)[0] || '';
+      return '<a class="tpl-bar" href="' + h(href) + '"' + open + '><span class="dash"></span><span class="t">' + h(title) + '</span></a>';
     }).join('') + '</div>';
   }
   function footerHtml() {
@@ -276,7 +270,7 @@
     }).join('');
     return pageHero('MARKETING', 'assets/banners/marketing.jpg') +
       '<section class="section"><div class="wrap">' +
-      sectionHead('Templates', 'Canva designs and holiday graphics.') +
+      sectionHead('Templates', '') +
       templateBars(C.site && C.site.marketing) +
       '<div style="height:56px"></div>' +
       sectionHead('Logos', '') +
