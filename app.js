@@ -211,7 +211,7 @@
         '<div class="cap"><div class="date">' + h(e.mon) + '<b>' + h(e.day) + '</b></div>' +
         '<div class="dash"></div><h3>' + h(e.title) + '</h3><p>' + h(e.meta) + '</p></div></a>';
     }).join('') : '<p class="note" style="text-align:center">No upcoming free C.A.R. or CVAR events in the next 30 days.</p>';
-    return '<section class="hero">' + heroVideos() + '<img class="lockup" src="assets/hero-lockup.png" alt="ENESMA Realty Agent Hub. Underpromise &amp; Overdeliver."><button type="button" class="hero-tap">TAP FOR VIDEO</button></section>' +
+    return '<section class="hero">' + heroVideos() + '<img class="lockup" src="assets/hero-lockup.png" alt="ENESMA Realty Agent Hub. Underpromise &amp; Overdeliver."></section>' +
       '<section class="section"><div class="wrap">' + sectionHead('Agent Resources', 'Forms, tools, and support to help you close with confidence.') + shotGrid(C.site && C.site.home) + '</div></section>' +
       '<section class="section" style="padding-top:0"><div class="wrap">' + sectionHead('Upcoming Events', '') +
       (ev.length ? '<div class="grid-2">' + evHtml + '</div>' : evHtml) + '</div></section>' +
@@ -781,7 +781,6 @@
     var box = qs('.hero-videos');
     if (!box) return;
     var hero = box.closest('.hero');
-    var tap = hero ? qs('.hero-tap', hero) : null;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       box.classList.add('off');
       qsa('video', box).forEach(function (v) {
@@ -872,13 +871,6 @@
       v.onended = function () { if (v === vids[i]) goNext(); };
     });
     play(vids[0]);
-    if (tap) {
-      tap.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        startFromGesture();
-      });
-    }
     if (hero) {
       hero.addEventListener('click', function () {
         if (!hero.classList.contains('needs-gesture')) return;
