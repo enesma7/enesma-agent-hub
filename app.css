@@ -183,11 +183,11 @@ button, input { font: inherit; }
 }
 .shot-single { width: min(920px, 100%); margin: 0 auto; }
 .logo-pair { margin-bottom: 56px; }
-.logo-card { margin: 0; border-radius: 8px; }
-.logo-card.dark { background: #000007; }
-.logo-card.light { background: #fff; border: 1px solid #ececec; }
+.logo-card { margin: 0; border-radius: 8px; overflow: hidden; }
+.logo-card.dark { background: #000007; padding: 36px 32px; }
+.logo-card.light { background: #fff; border: 1px solid #ececec; padding: 36px 32px; }
 .logo-card img {
-  width: 100%; height: auto; display: block;
+  width: 100%; height: auto; display: block; background: transparent;
   -webkit-touch-callout: default;
   user-select: auto;
   touch-action: manipulation;
