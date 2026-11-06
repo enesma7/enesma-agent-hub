@@ -387,12 +387,15 @@ button, input { font: inherit; }
   font-weight: 700; font-size: clamp(18px, 3vw, 26px); text-decoration: none;
 }
 .refer-btn:hover { filter: brightness(.97); }
-.socials { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 16px; }
-.socials a {
-  text-decoration: none; border: 1px solid #e4d7b0; border-radius: 999px;
-  padding: 6px 12px; font-size: 13px;
+.socials {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+  gap: 18px; margin: 14px 0 18px;
 }
-.socials a:hover { background-image: var(--gold); }
+.socials a {
+  display: block; line-height: 0; padding: 0; border: 0; background: none; border-radius: 0;
+}
+.socials svg { display: block; width: 28px; height: 28px; }
+.socials a:hover { opacity: .62; }
 
 /* Search */
 .search-scrim { position: fixed; inset: 0; background: rgba(0,0,7,.46); z-index: 50; display: flex; justify-content: center; padding: 12vh 16px 16px; }
