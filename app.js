@@ -225,16 +225,13 @@
         '<figcaption><b>' + h(c.name) + '</b><code>' + h(c.hex) + '</code></figcaption></figure>';
     }).join('');
     var logos = [
-      { src: 'assets/logo-white.png', name: 'White', stage: 'dark' },
-      { src: 'assets/logo-black.png', name: 'Black', stage: 'light' },
-      { src: 'assets/logo-gold.png', name: 'Aztec Gold', stage: 'dark' },
-      { src: 'assets/logo-red.png', name: 'Illyrian Red', stage: 'light' },
-      { src: 'assets/logo-gold-foil.png', name: 'Gold Foil', stage: 'dark' }
+      { src: 'assets/logo-white.png', name: 'White' },
+      { src: 'assets/logo-black.png', name: 'Black' },
+      { src: 'assets/logo-gold.png', name: 'Aztec Gold' },
+      { src: 'assets/logo-red.png', name: 'Illyrian Red' },
+      { src: 'assets/logo-gold-foil.png', name: 'Gold Foil' }
     ].map(function (l) {
-      return '<figure class="card-plain logo-card">' +
-        '<span class="logo-stage ' + l.stage + '">' +
-        '<img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark">' +
-        '</span><figcaption><h3>' + h(l.name) + '</h3></figcaption></figure>';
+      return '<figure class="logo-card"><img src="' + h(l.src) + '" alt="' + h(l.name) + ' wordmark"></figure>';
     }).join('');
     return pageHero('MARKETING', 'assets/banners/marketing.jpg') +
       '<section class="section"><div class="wrap">' +
