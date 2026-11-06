@@ -366,13 +366,13 @@
   function pageAgent(a) {
     return pageHero(a.name.toUpperCase(), 'assets/banners/agents.jpg') +
       '<section class="section"><div class="wrap"><div class="agent">' +
-      '<img src="' + h(a.img) + '" alt="' + h(a.name) + '"><div>' +
-      '<h2>' + h(a.name) + '</h2><p class="meta">' + h(a.role) + ' · DRE# ' + h(a.dre) + '</p>' +
-      '<p><a href="tel:' + h(a.phone.replace(/[^\d+]/g, '')) + '">' + h(a.phone) + '</a><br>' +
+      '<img src="' + h(a.img) + '" alt="' + h(a.name) + '"><div class="agent-body">' +
+      '<div class="agent-info"><h2>' + h(a.name) + '</h2><p class="meta">' + h(a.role) + ' · DRE# ' + h(a.dre) + '</p>' +
+      '<p class="agent-contact"><a href="tel:' + h(a.phone.replace(/[^\d+]/g, '')) + '">' + h(a.phone) + '</a><br>' +
       '<a href="mailto:' + h(a.email) + '">' + h(a.email) + '</a><br>' +
-      '<a href="' + h(a.web) + '" target="_blank" rel="noopener">' + h(a.webLabel) + '</a></p>' +
+      '<a href="' + h(a.web) + '" target="_blank" rel="noopener">' + h(a.webLabel) + '</a></p></div>' +
       socialRow(a.social) +
-      (a.bioHtml || '') + '</div></div></div></section>';
+      '<div class="agent-bio">' + (a.bioHtml || '') + '</div></div></div></section>';
   }
   function pagePartners() {
     return pageHero('PREFERRED PARTNERS', 'assets/banners/partners-hero.jpg') +
