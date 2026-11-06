@@ -110,17 +110,28 @@ button, input { font: inherit; }
 /* ---------- Page chrome ---------- */
 .hero {
   position: relative; min-height: 0; display: grid; place-items: center; overflow: hidden;
-  background: #000007 center/cover no-repeat; color: var(--white); text-align: center;
+  background-color: #000007; background-image: none; color: var(--white); text-align: center;
 }
 .hero-videos { position: absolute; inset: 0; z-index: 0; }
 .hero-videos video {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   opacity: 0; transition: opacity 1.6s ease;
+  background: #000007;
 }
 .hero-videos video.on { opacity: 1; }
 .hero-videos.off { visibility: hidden; }
-.hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(0,0,7,.68); }
-.hero .lockup { position: relative; z-index: 2; width: min(400px, 78vw); height: auto; padding: 18px 16px 20px; }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(0,0,7,.68); pointer-events: none; }
+.hero .lockup { position: relative; z-index: 2; grid-column: 1; grid-row: 1; width: min(400px, 78vw); height: auto; padding: 18px 16px 20px; }
+.hero.needs-gesture { cursor: pointer; }
+.hero-tap {
+  display: none; position: relative; z-index: 3; grid-column: 1; grid-row: 2;
+  margin: 0 0 12px; padding: 2px 12px 4px; border: 0; background: transparent;
+  color: var(--gold-a); cursor: pointer;
+  font-size: 10px; font-weight: 500; letter-spacing: .16em; line-height: 1.35;
+  -webkit-tap-highlight-color: transparent;
+}
+.hero.needs-gesture .hero-tap { display: block; }
+.hero-tap:focus-visible { outline: 2px solid var(--gold-a); outline-offset: 3px; }
 .page-hero {
   position: relative; min-height: 220px; display: grid; place-items: center;
   background: var(--black) center/cover no-repeat; color: var(--white);

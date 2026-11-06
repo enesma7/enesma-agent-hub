@@ -201,7 +201,7 @@
       'assets/hero/joshua-tree.mp4'
     ];
     return '<div class="hero-videos" aria-hidden="true">' + clips.map(function (src, i) {
-      return '<video muted playsinline' + (i === 0 ? ' autoplay' : '') + ' preload="' + (i === 0 ? 'auto' : 'metadata') + '" poster="assets/hero.jpg"><source src="' + src + '" type="video/mp4"></video>';
+      return '<video muted playsinline webkit-playsinline' + (i === 0 ? ' autoplay' : '') + ' preload="' + (i === 0 ? 'auto' : 'metadata') + '"><source src="' + src + '" type="video/mp4"></video>';
     }).join('') + '</div>';
   }
   function pageHome() {
@@ -211,7 +211,7 @@
         '<div class="cap"><div class="date">' + h(e.mon) + '<b>' + h(e.day) + '</b></div>' +
         '<div class="dash"></div><h3>' + h(e.title) + '</h3><p>' + h(e.meta) + '</p></div></a>';
     }).join('') : '<p class="note" style="text-align:center">No upcoming free C.A.R. or CVAR events in the next 30 days.</p>';
-    return '<section class="hero" style="background-image:url(\'assets/hero.jpg\')">' + heroVideos() + '<img class="lockup" src="assets/hero-lockup.png" alt="ENESMA Realty Agent Hub. Underpromise &amp; Overdeliver."></section>' +
+    return '<section class="hero">' + heroVideos() + '<img class="lockup" src="assets/hero-lockup.png" alt="ENESMA Realty Agent Hub. Underpromise &amp; Overdeliver."><button type="button" class="hero-tap">TAP FOR VIDEO</button></section>' +
       '<section class="section"><div class="wrap">' + sectionHead('Agent Resources', 'Forms, tools, and support to help you close with confidence.') + shotGrid(C.site && C.site.home) + '</div></section>' +
       '<section class="section" style="padding-top:0"><div class="wrap">' + sectionHead('Upcoming Events', '') +
       (ev.length ? '<div class="grid-2">' + evHtml + '</div>' : evHtml) + '</div></section>' +
@@ -780,6 +780,8 @@
   function bindHeroVideos() {
     var box = qs('.hero-videos');
     if (!box) return;
+    var hero = box.closest('.hero');
+    var tap = hero ? qs('.hero-tap', hero) : null;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       box.classList.add('off');
       return;
@@ -789,9 +791,37 @@
     var i = 0;
     var fading = false;
     var fadeMs = 1600;
+    function showTap() {
+      box.classList.add('off');
+      if (hero) hero.classList.add('needs-gesture');
+    }
+    function clearTap() {
+      if (hero) hero.classList.remove('needs-gesture');
+    }
+    function autoplayBlocked(err) {
+      if (!err || err.name === 'NotAllowedError') return true;
+      return /not allowed|user gesture|interact with|user agent/i.test(String(err.message || ''));
+    }
     function play(v) {
+      v.muted = true;
+      v.defaultMuted = true;
+      v.playsInline = true;
       var p = v.play();
-      if (p && p.catch) p.catch(function () { box.classList.add('off'); });
+      if (p && p.then) {
+        p.then(function () { clearTap(); }).catch(function (err) {
+          if (err && err.name === 'AbortError') return;
+          if (autoplayBlocked(err)) showTap();
+          else box.classList.add('off');
+        });
+      }
+      return p;
+    }
+    function startFromGesture() {
+      var v = vids[i] || vids[0];
+      if (!v) return;
+      box.classList.remove('off');
+      v.classList.add('on');
+      play(v);
     }
     function goNext() {
       if (fading || box.classList.contains('off')) return;
@@ -810,6 +840,10 @@
       }, fadeMs);
     }
     vids.forEach(function (v) {
+      v.muted = true;
+      v.defaultMuted = true;
+      v.playsInline = true;
+      v.removeAttribute('poster');
       v.onerror = function () { box.classList.add('off'); };
       v.ontimeupdate = function () {
         if (v !== vids[i] || fading || !isFinite(v.duration)) return;
@@ -819,6 +853,19 @@
     });
     vids[0].classList.add('on');
     play(vids[0]);
+    if (tap) {
+      tap.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        startFromGesture();
+      });
+    }
+    if (hero) {
+      hero.addEventListener('click', function () {
+        if (!hero.classList.contains('needs-gesture')) return;
+        startFromGesture();
+      });
+    }
     if ('IntersectionObserver' in window && qs('.hero')) {
       var io = new IntersectionObserver(function (ents) {
         var vis = ents[0] && ents[0].isIntersecting;
