@@ -1079,20 +1079,26 @@
     var scale = 1;
     var alpha = 1;
     var veil = 1;
-    if (t < 0.18) {
-      var u = t / 0.18;
+    if (t < 0.14) {
+      var u = t / 0.14;
       var e = 1 - Math.pow(1 - u, 3);
-      scale = 1.08 - 0.08 * e;
+      scale = 1.1 - 0.1 * e;
       alpha = e;
-    } else if (t < 0.62) {
+    } else if (t < 0.46) {
       scale = 1;
       alpha = 1;
-    } else {
-      var u2 = (t - 0.62) / 0.38;
+    } else if (t < 0.74) {
+      var u2 = (t - 0.46) / 0.28;
       var e2 = u2 * u2 * (3 - 2 * u2);
-      scale = 1 - 0.22 * e2;
-      alpha = 1 - e2;
-      veil = 1 - e2;
+      scale = 1 - 0.5 * e2;
+      alpha = 1;
+      veil = 1;
+    } else {
+      var u3 = (t - 0.74) / 0.26;
+      var e3 = u3 * u3 * (3 - 2 * u3);
+      scale = 0.5 - 0.08 * e3;
+      alpha = 1 - e3;
+      veil = 1 - e3;
     }
     var overlay = canvas.parentNode;
     if (overlay) overlay.style.background = 'rgba(0,0,7,' + veil.toFixed(3) + ')';
@@ -1103,14 +1109,15 @@
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(image, -cssW / 2, -cssH / 2, cssW, cssH);
-    if (t > 0.22 && t < 0.62) {
-      var g = (t - 0.22) / 0.4;
-      var x = -cssW * 0.65 + g * cssW * 1.5;
-      var grad = ctx.createLinearGradient(x - cssW * 0.16, 0, x + cssW * 0.16, cssH * 0.15);
+    if (t > 0.14 && t < 0.48) {
+      var g = (t - 0.14) / 0.34;
+      var x = -cssW * 0.7 + g * cssW * 1.45;
+      var band = Math.max(22, cssW * 0.13);
+      var grad = ctx.createLinearGradient(x - band, -cssH * 0.2, x + band, cssH * 0.35);
       grad.addColorStop(0, 'rgba(255,255,255,0)');
-      grad.addColorStop(0.42, 'rgba(255,244,214,0)');
-      grad.addColorStop(0.5, 'rgba(255,250,236,0.82)');
-      grad.addColorStop(0.58, 'rgba(255,244,214,0)');
+      grad.addColorStop(0.42, 'rgba(255,236,190,0)');
+      grad.addColorStop(0.5, 'rgba(255,255,255,1)');
+      grad.addColorStop(0.58, 'rgba(255,236,190,0)');
       grad.addColorStop(1, 'rgba(255,255,255,0)');
       ctx.globalCompositeOperation = 'source-atop';
       ctx.fillStyle = grad;
