@@ -381,9 +381,9 @@ window.HUB_CONTENT = {
     },
     {
       "title": "Veterans Day",
-      "video": "assets/holidays/veterans.mp4",
-      "poster": "assets/holidays/veterans.jpg",
-      "img": "assets/holidays/veterans.jpg"
+      "video": "assets/holidays/veterans.mp4?v=2",
+      "poster": "assets/holidays/veterans.jpg?v=2",
+      "img": "assets/holidays/veterans.jpg?v=2"
     },
     {
       "title": "Thanksgiving",
