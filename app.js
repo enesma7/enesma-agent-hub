@@ -921,6 +921,7 @@
       }).catch(function (err) { var keep = qs('#lu').value; renderLogin(err.message); qs('#lu').value = keep; });
     };
     syncHomeScreen();
+    maybePlayIntro();
   }
   function renderOtp(ch, msg, okMsg) {
     view = 'otp'; otpCh = ch;
@@ -1059,8 +1060,11 @@
   }
   function maybePlayIntro() {
     if (introSeen()) return;
+    if (S.token && path() !== '/') {
+      markIntroSeen();
+      return;
+    }
     markIntroSeen();
-    if (path() !== '/') return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     var token = ++introToken;
     var overlay = document.createElement('div');
