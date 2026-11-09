@@ -24,6 +24,50 @@
     if (p.charAt(0) !== '/') p = '/' + p;
     return p.replace(/\/+$/, '') || '/';
   }
+  function isCalculatorsHome() {
+    return path().split('?')[0] === '/calculators';
+  }
+  function removeHeadNodes(selector) {
+    qsa(selector, document.head).forEach(function (node) {
+      if (node.parentNode) node.parentNode.removeChild(node);
+    });
+  }
+  function insertHeadLink(attrs) {
+    var link = document.createElement('link');
+    Object.keys(attrs).forEach(function (key) { link.setAttribute(key, attrs[key]); });
+    document.head.appendChild(link);
+  }
+  function replaceMeta(name, content) {
+    removeHeadNodes('meta[name="' + name + '"]');
+    var meta = document.createElement('meta');
+    meta.setAttribute('name', name);
+    meta.setAttribute('content', content);
+    document.head.appendChild(meta);
+  }
+  // Safari reads the existing <link> nodes when the share sheet opens, so
+  // home-screen icons are swapped by replacing those elements.
+  function syncHomeScreen() {
+    var calc = isCalculatorsHome();
+    removeHeadNodes('link[rel="apple-touch-icon"], link[rel="apple-touch-icon-precomposed"], link[rel="icon"], link[rel="shortcut icon"], link[rel="manifest"]');
+    if (calc) {
+      insertHeadLink({ rel: 'icon', type: 'image/png', sizes: '32x32', href: '/assets/icons/calc/favicon-32-calc-v2.png' });
+      insertHeadLink({ rel: 'apple-touch-icon', sizes: '180x180', href: '/assets/icons/calc/apple-touch-icon-calc-v2.png' });
+      insertHeadLink({ rel: 'manifest', href: '/calculators/manifest.webmanifest?v=1' });
+      replaceMeta('apple-mobile-web-app-title', 'Calculators');
+      document.title = 'Calculators';
+      return;
+    }
+    insertHeadLink({ rel: 'icon', type: 'image/png', href: 'favicon-32.png' });
+    insertHeadLink({ rel: 'apple-touch-icon', href: 'apple-touch-icon.png' });
+    replaceMeta('apple-mobile-web-app-title', 'AGENT HUB');
+    if (document.title === 'Calculators') {
+      if (view === 'login') document.title = 'Sign in · AGENT HUB';
+      else if (view === 'otp') document.title = 'Enter code · AGENT HUB';
+      else if (view === 'forgot') document.title = 'Reset password · AGENT HUB';
+      else if (view === 'app') document.title = titles() + ' · ENESMA Realty';
+      else document.title = 'AGENT HUB · ENESMA Realty';
+    }
+  }
   function userName() {
     var u = S.user || {};
     return u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Agent';
@@ -871,6 +915,7 @@
         afterAuth();
       }).catch(function (err) { var keep = qs('#lu').value; renderLogin(err.message); qs('#lu').value = keep; });
     };
+    syncHomeScreen();
   }
   function renderOtp(ch, msg, okMsg) {
     view = 'otp'; otpCh = ch;
@@ -901,6 +946,7 @@
         .catch(function (err) { renderOtp(ch, err.message); });
     };
     setTimeout(function () { var el = qs('#oc'); if (el) el.focus(); }, 30);
+    syncHomeScreen();
   }
   function renderForgot(email, step, msg, okMsg, need) {
     view = 'forgot';
@@ -953,6 +999,7 @@
         renderForgot(em, 2, unsupported(err), '', need);
       });
     };
+    syncHomeScreen();
   }
 
   function bindChrome() {
@@ -1260,6 +1307,7 @@
       if (mount && host) mount(host);
     }
     window.scrollTo(0, 0);
+    syncHomeScreen();
   }
   function afterAuth() {
     if (!location.hash || location.hash === '#/login') location.hash = '#/';
@@ -1280,8 +1328,10 @@
     searchOpen = false;
     onRoute();
   });
+  window.addEventListener('hashchange', syncHomeScreen);
 
   function boot() {
+    syncHomeScreen();
     Auth.bootSession();
     if (!S.token) { renderLogin(); return; }
     Auth.api('me').then(function (d) {
