@@ -124,6 +124,15 @@ button, input { font: inherit; }
 .hero::after { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(0,0,7,.4); pointer-events: none; }
 .hero .lockup { position: relative; z-index: 2; grid-column: 1; grid-row: 1; width: min(400px, 78vw); height: auto; padding: 18px 16px 20px; }
 .hero.needs-gesture { cursor: pointer; }
+/* Full-screen gold wordmark intro. The canvas is sized in CSS pixels and
+   painted at devicePixelRatio so the foil master stays sharp. */
+.brand-intro {
+  position: fixed; inset: 0; z-index: 80;
+  background: #000007;
+  display: grid; place-items: center;
+  cursor: pointer; touch-action: manipulation;
+}
+.brand-intro canvas { display: block; width: min(72vw, 680px); height: auto; }
 .page-hero {
   position: relative; min-height: 220px; display: grid; place-items: center;
   background: var(--black) center/cover no-repeat; color: var(--white);

@@ -989,6 +989,136 @@
     }
   }
 
+  var INTRO_MS = 3000;
+  var introToken = 0;
+
+  function introSeen() {
+    try { return sessionStorage.getItem('enesma_intro_seen') === '1'; }
+    catch (e) { return false; }
+  }
+  function markIntroSeen() {
+    try { sessionStorage.setItem('enesma_intro_seen', '1'); } catch (e) {}
+  }
+  function endBrandIntro(token) {
+    if (token && token !== introToken) return;
+    var el = qs('.brand-intro');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    try { document.dispatchEvent(new Event('enesma-intro-done')); } catch (e) {}
+  }
+  function maybePlayIntro() {
+    if (introSeen()) return;
+    markIntroSeen();
+    if (path() !== '/') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var token = ++introToken;
+    var overlay = document.createElement('div');
+    overlay.className = 'brand-intro';
+    overlay.setAttribute('role', 'button');
+    overlay.setAttribute('tabindex', '0');
+    overlay.setAttribute('aria-label', 'ENESMA');
+    var canvas = document.createElement('canvas');
+    overlay.appendChild(canvas);
+    document.body.appendChild(overlay);
+    var finished = false;
+    var raf = 0;
+    var safety = 0;
+    function finish() {
+      if (finished || token !== introToken) return;
+      finished = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (safety) clearTimeout(safety);
+      document.removeEventListener('keydown', onKey);
+      endBrandIntro(token);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        finish();
+      }
+    }
+    overlay.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      finish();
+    });
+    overlay._endIntro = finish;
+    document.addEventListener('keydown', onKey);
+    safety = setTimeout(finish, INTRO_MS + 700);
+    var img = new Image();
+    img.onload = function () { if (!finished) playMark(img); };
+    img.onerror = function () { finish(); };
+    img.src = 'assets/logo-gold-foil.png';
+    function playMark(image) {
+      var start = 0;
+      function frame(now) {
+        if (finished || token !== introToken) return;
+        if (!start) start = now;
+        var t = Math.min(1, (now - start) / INTRO_MS);
+        drawIntroFrame(canvas, image, t);
+        if (t >= 1) { finish(); return; }
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+    }
+  }
+  function drawIntroFrame(canvas, image, t) {
+    var cssW = Math.min(window.innerWidth * 0.72, 680);
+    var cssH = cssW * (image.height / image.width);
+    var dpr = window.devicePixelRatio || 1;
+    if (cssW * dpr > image.width) dpr = image.width / cssW;
+    var bw = Math.max(1, Math.round(cssW * dpr));
+    var bh = Math.max(1, Math.round(cssH * dpr));
+    if (canvas.width !== bw || canvas.height !== bh) {
+      canvas.width = bw;
+      canvas.height = bh;
+      canvas.style.width = cssW + 'px';
+      canvas.style.height = cssH + 'px';
+    }
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+    var scale = 1;
+    var alpha = 1;
+    var veil = 1;
+    if (t < 0.18) {
+      var u = t / 0.18;
+      var e = 1 - Math.pow(1 - u, 3);
+      scale = 1.08 - 0.08 * e;
+      alpha = e;
+    } else if (t < 0.62) {
+      scale = 1;
+      alpha = 1;
+    } else {
+      var u2 = (t - 0.62) / 0.38;
+      var e2 = u2 * u2 * (3 - 2 * u2);
+      scale = 1 - 0.22 * e2;
+      alpha = 1 - e2;
+      veil = 1 - e2;
+    }
+    var overlay = canvas.parentNode;
+    if (overlay) overlay.style.background = 'rgba(0,0,7,' + veil.toFixed(3) + ')';
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(cssW / 2, cssH / 2);
+    ctx.scale(scale, scale);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(image, -cssW / 2, -cssH / 2, cssW, cssH);
+    if (t > 0.22 && t < 0.62) {
+      var g = (t - 0.22) / 0.4;
+      var x = -cssW * 0.65 + g * cssW * 1.5;
+      var grad = ctx.createLinearGradient(x - cssW * 0.16, 0, x + cssW * 0.16, cssH * 0.15);
+      grad.addColorStop(0, 'rgba(255,255,255,0)');
+      grad.addColorStop(0.42, 'rgba(255,244,214,0)');
+      grad.addColorStop(0.5, 'rgba(255,250,236,0.82)');
+      grad.addColorStop(0.58, 'rgba(255,244,214,0)');
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.globalCompositeOperation = 'source-atop';
+      ctx.fillStyle = grad;
+      ctx.fillRect(-cssW / 2, -cssH / 2, cssW, cssH);
+    }
+    ctx.restore();
+  }
+
   function bindHeroVideos() {
     var box = qs('.hero-videos');
     if (!box) return;
@@ -1100,7 +1230,19 @@
     });
     box.classList.remove('off');
     vids[0].classList.add('on');
-    play(vids[0]);
+    if (qs('.brand-intro')) {
+      vids.forEach(function (v) {
+        v.removeAttribute('autoplay');
+        try { v.pause(); } catch (e) {}
+      });
+      document.addEventListener('enesma-intro-done', function onIntro() {
+        document.removeEventListener('enesma-intro-done', onIntro);
+        if (!qs('.hero-videos')) return;
+        play(vids[i] || vids[0]);
+      });
+    } else {
+      play(vids[0]);
+    }
     if (hero) {
       hero.addEventListener('click', function () {
         if (!hero.classList.contains('needs-gesture')) return;
@@ -1124,6 +1266,7 @@
     document.title = titles() + ' · ENESMA Realty';
     $app.innerHTML = headerHtml() + pageFor(path()) + footerHtml() + searchOverlay();
     bindChrome();
+    maybePlayIntro();
     bindHeroVideos();
     bindHolidayTiles();
     var stage = qs('[data-calc]');
@@ -1147,7 +1290,12 @@
     renderApp();
   }
 
-  window.addEventListener('hashchange', function () { searchOpen = false; onRoute(); });
+  window.addEventListener('hashchange', function () {
+    var intro = qs('.brand-intro');
+    if (intro && intro._endIntro) intro._endIntro();
+    searchOpen = false;
+    onRoute();
+  });
 
   function boot() {
     Auth.bootSession();
