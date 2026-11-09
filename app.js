@@ -994,6 +994,120 @@
     }
   }
 
+  var INTRO_MS = 3000;
+  var introToken = 0;
+
+  function introSeen() {
+    try { return sessionStorage.getItem('enesma_intro_seen') === '1'; }
+    catch (e) { return false; }
+  }
+  function markIntroSeen() {
+    try { sessionStorage.setItem('enesma_intro_seen', '1'); } catch (e) {}
+  }
+  function endBrandIntro(token) {
+    if (token && token !== introToken) return;
+    var el = qs('.brand-intro');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    try { document.dispatchEvent(new Event('enesma-intro-done')); } catch (e) {}
+  }
+  function maybePlayIntro() {
+    if (introSeen()) return;
+    markIntroSeen();
+    if (path() !== '/') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var token = ++introToken;
+    var overlay = document.createElement('div');
+    overlay.className = 'brand-intro';
+    overlay.setAttribute('role', 'button');
+    overlay.setAttribute('tabindex', '0');
+    overlay.setAttribute('aria-label', 'ENESMA');
+    var mark = document.createElement('div');
+    mark.className = 'brand-intro-mark';
+    var zoom = document.createElement('div');
+    zoom.className = 'brand-intro-zoom';
+    var logo = document.createElement('img');
+    logo.className = 'brand-intro-logo';
+    logo.alt = '';
+    logo.draggable = false;
+    logo.src = 'assets/logo-gold.svg?v=1';
+    var glint = document.createElement('div');
+    glint.className = 'brand-intro-glint';
+    glint.setAttribute('aria-hidden', 'true');
+    var streak = document.createElement('span');
+    glint.appendChild(streak);
+    zoom.appendChild(logo);
+    zoom.appendChild(glint);
+    mark.appendChild(zoom);
+    overlay.appendChild(mark);
+    document.body.appendChild(overlay);
+    var finished = false;
+    var raf = 0;
+    var safety = 0;
+    function finish() {
+      if (finished || token !== introToken) return;
+      finished = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (safety) clearTimeout(safety);
+      document.removeEventListener('keydown', onKey);
+      endBrandIntro(token);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        finish();
+      }
+    }
+    overlay.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      finish();
+    });
+    overlay._endIntro = finish;
+    document.addEventListener('keydown', onKey);
+    safety = setTimeout(finish, INTRO_MS + 700);
+    function playMark() {
+      var start = 0;
+      function frame(now) {
+        if (finished || token !== introToken) return;
+        if (!start) start = now;
+        var t = Math.min(1, (now - start) / INTRO_MS);
+        drawIntroFrame(zoom, streak, overlay, t);
+        if (t >= 1) { finish(); return; }
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    if (logo.complete) playMark();
+    else {
+      logo.onload = function () { if (!finished) playMark(); };
+      logo.onerror = function () { finish(); };
+    }
+  }
+  function drawIntroFrame(zoom, streak, overlay, t) {
+    var visual = 1;
+    var alpha = 1;
+    var veil = 1;
+    if (t < 0.14) {
+      alpha = 1 - Math.pow(1 - t / 0.14, 3);
+    } else if (t >= 0.46) {
+      var u = (t - 0.46) / 0.54;
+      var rush = u * u;
+      visual = 1 + 7 * rush;
+      var fadeU = Math.max(0, (u - 0.22) / 0.78);
+      veil = 1 - fadeU * fadeU * (3 - 2 * fadeU);
+    }
+    zoom.style.transform = 'translate(-50%, -50%) scale(' + (visual / 8).toFixed(4) + ')';
+    zoom.style.opacity = alpha.toFixed(3);
+    overlay.style.opacity = veil.toFixed(3);
+    if (t >= 0.14 && t < 0.46) {
+      var g = (t - 0.14) / 0.32;
+      var sweep = g * g * (3 - 2 * g);
+      streak.style.opacity = '1';
+      streak.style.transform = 'translate3d(' + (-150 + sweep * 860).toFixed(1) + '%, 0, 0)';
+    } else {
+      streak.style.opacity = '0';
+    }
+  }
+
   function bindHeroVideos() {
     var box = qs('.hero-videos');
     if (!box) return;
@@ -1113,7 +1227,22 @@
     box.classList.remove('off');
     slots[0].classList.add('on');
     slots[1].classList.remove('on');
-    play(slots[0]);
+    function startHero() {
+      if (!qs('.hero-videos')) return;
+      play(slots[active]);
+    }
+    if (qs('.brand-intro')) {
+      slots.forEach(function (v) {
+        v.removeAttribute('autoplay');
+        try { v.pause(); } catch (e) {}
+      });
+      document.addEventListener('enesma-intro-done', function onIntro() {
+        document.removeEventListener('enesma-intro-done', onIntro);
+        startHero();
+      });
+    } else {
+      startHero();
+    }
     if (hero) {
       hero.addEventListener('click', function () {
         if (!hero.classList.contains('needs-gesture')) return;
@@ -1126,7 +1255,7 @@
         if (!vis) {
           if (hero && hero.getBoundingClientRect().height < 8) return;
           slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
-        } else play(slots[active]);
+        } else if (!qs('.brand-intro')) play(slots[active]);
       }, { threshold: 0.2 });
       io.observe(qs('.hero'));
     }
@@ -1137,6 +1266,7 @@
     document.title = titles() + ' · ENESMA Realty';
     $app.innerHTML = headerHtml() + pageFor(path()) + footerHtml() + searchOverlay();
     bindChrome();
+    maybePlayIntro();
     bindHeroVideos();
     bindHolidayTiles();
     var stage = qs('[data-calc]');
@@ -1160,7 +1290,12 @@
     renderApp();
   }
 
-  window.addEventListener('hashchange', function () { searchOpen = false; onRoute(); });
+  window.addEventListener('hashchange', function () {
+    var intro = qs('.brand-intro');
+    if (intro && intro._endIntro) intro._endIntro();
+    searchOpen = false;
+    onRoute();
+  });
 
   function boot() {
     Auth.bootSession();
