@@ -382,16 +382,13 @@ if (M) {
       }
     }
 
-    function ensureMinDown() {
-      var min = M.minDownPct(V.loanType);
+    function applyProgramDown() {
+      var pct = V.loanType === "fha" ? 3.5 : V.loanType === "va" ? 0 : 20;
       var p = price();
-      var pct = p ? num(V.down) / p * 100 : num(V.downPct);
-      if (pct + 1e-6 < min) {
-        V.downPct = min;
-        V.down = Math.round(p * min / 100);
-        q("down").value = V.down;
-        q("downPct").value = V.downPct;
-      }
+      V.downPct = pct;
+      V.down = Math.round(p * pct / 100);
+      q("down").value = V.down;
+      q("downPct").value = V.downPct;
     }
 
     function syncPmiDefault() {
@@ -588,7 +585,7 @@ if (M) {
         x.classList.toggle("on", on);
         x.setAttribute("aria-pressed", on ? "true" : "false");
       });
-      ensureMinDown();
+      applyProgramDown();
       syncPmiDefault();
       applyRate();
       upd();
