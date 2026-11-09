@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "ENESMA AGENT HUB",
+  "version": "1.0.0",
+  "description": "Open Agent Hub tools from a popup. Uses the same ENESMA sign-in as the Hub.",
+  "minimum_chrome_version": "109",
+  "action": {
+    "default_title": "ENESMA AGENT HUB",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["cookies"],
+  "host_permissions": [
+    "https://script.google.com/*",
+    "https://script.googleusercontent.com/*",
+    "https://*.enesmarealty.com/*",
+    "https://enesmarealty.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self'; img-src 'self' https://*.enesmarealty.com https://enesmarealty.com data:; connect-src 'self' https://*.enesmarealty.com https://enesmarealty.com https://script.google.com https://script.googleusercontent.com"
+  }
+}
