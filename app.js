@@ -229,26 +229,134 @@
     return '<div class="search-scrim" id="searchScrim"><div class="search-box"><input id="searchIn" type="search" placeholder="Search the Hub" autofocus><div id="searchHits"></div></div></div>';
   }
 
+  var HERO_CACHE = '2';
+  // First clip is decoded behind the page as soon as the script runs, then
+  // moved into the hero already showing a frame. Kept outside #app so a
+  // re-render does not throw that frame away.
+  var heroWarm = null;
+
   function heroClipSrcs() {
+    var q = '?v=' + HERO_CACHE;
     return [
-      'assets/hero/hero-01-santa-monica.mp4?v=1',
-      'assets/hero/hero-02-hollywood.mp4?v=1',
-      'assets/hero/hero-03-downtown-la.mp4?v=1',
-      'assets/hero/hero-04-big-bear.mp4?v=1',
-      'assets/hero/hero-05-palm-springs.mp4?v=1',
-      'assets/hero/hero-06-palos-verdes.mp4?v=1',
-      'assets/hero/hero-07-catalina.mp4?v=1',
-      'assets/hero/hero-08-marina-del-rey.mp4?v=1',
-      'assets/hero/hero-09-beverly-hills.mp4?v=1',
-      'assets/hero/hero-10-long-beach.mp4?v=1',
-      'assets/hero/hero-11-redondo-beach.mp4?v=1',
-      'assets/hero/hero-12-san-diego.mp4?v=1'
+      'assets/hero/hero-01-santa-monica.mp4' + q,
+      'assets/hero/hero-02-hollywood.mp4' + q,
+      'assets/hero/hero-03-downtown-la.mp4' + q,
+      'assets/hero/hero-04-big-bear.mp4' + q,
+      'assets/hero/hero-05-palm-springs.mp4' + q,
+      'assets/hero/hero-06-palos-verdes.mp4' + q,
+      'assets/hero/hero-07-catalina.mp4' + q,
+      'assets/hero/hero-08-marina-del-rey.mp4' + q,
+      'assets/hero/hero-09-beverly-hills.mp4' + q,
+      'assets/hero/hero-10-long-beach.mp4' + q,
+      'assets/hero/hero-11-redondo-beach.mp4' + q,
+      'assets/hero/hero-12-san-diego.mp4' + q
     ];
   }
+  function prepHeroVideo(v) {
+    v.muted = true;
+    v.defaultMuted = true;
+    v.playsInline = true;
+    v.preload = 'auto';
+    v.setAttribute('muted', '');
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
+    v.removeAttribute('poster');
+  }
+  function makeHeroVideo(src, onTop) {
+    var v = document.createElement('video');
+    prepHeroVideo(v);
+    v.className = onTop ? 'over on' : 'under';
+    if (onTop) {
+      v.autoplay = true;
+      v.loop = true;
+      v.setAttribute('autoplay', '');
+      v.setAttribute('loop', '');
+    }
+    v._heroSrc = src;
+    v.src = src;
+    return v;
+  }
+  function warmHero() {
+    if (heroWarm) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var clips = heroClipSrcs();
+    var park = document.createElement('div');
+    park.className = 'hero-park';
+    park.setAttribute('aria-hidden', 'true');
+    var first = makeHeroVideo(clips[0], true);
+    var next = makeHeroVideo(clips[1 % clips.length], false);
+    park.appendChild(first);
+    park.appendChild(next);
+    document.body.appendChild(park);
+    heroWarm = { park: park, vids: [first, next], held: false, mounted: false, gen: 0, api: null };
+    var playAttempt = first.play();
+    if (playAttempt && playAttempt.catch) playAttempt.catch(function () {});
+    function hold(frameReady) {
+      if (!heroWarm || heroWarm.held || heroWarm.mounted) return;
+      if (!frameReady && first.currentTime < 0.04) return;
+      // Remember that a real frame is on screen. Do not pause: WebKit will
+      // not resume a clip that was paused while it sat behind the page.
+      heroWarm.held = true;
+    }
+    // Pause on the first presented picture so a later home paint is footage,
+    // not the empty black plate Safari shows before a frame exists.
+    if (first.requestVideoFrameCallback) {
+      try { first.requestVideoFrameCallback(function () { hold(true); }); } catch (e) {}
+    }
+    first.addEventListener('timeupdate', function onTime() {
+      if (first.currentTime < 0.04) return;
+      first.removeEventListener('timeupdate', onTime);
+      hold(true);
+    });
+  }
+  function heroFrameReady() {
+    if (!heroWarm) return false;
+    var v = heroWarm.vids[0];
+    return !!(heroWarm.held || (v && v.videoWidth > 1 && v.currentTime >= 0.04));
+  }
+  function whenHeroFrame(limitMs) {
+    return new Promise(function (resolve) {
+      var done = false;
+      var v = heroWarm && heroWarm.vids[0];
+      var timer = 0;
+      function finish() {
+        if (done) return;
+        done = true;
+        if (timer) clearTimeout(timer);
+        if (v) v.removeEventListener('timeupdate', check);
+        resolve();
+      }
+      function check() {
+        if (heroFrameReady()) finish();
+      }
+      if (heroFrameReady()) { finish(); return; }
+      timer = setTimeout(finish, limitMs || 2000);
+      if (v && v.requestVideoFrameCallback) {
+        try { v.requestVideoFrameCallback(function () { check(); }); } catch (e) {}
+      }
+      if (v) v.addEventListener('timeupdate', check);
+    });
+  }
+  function detachHeroPark() {
+    if (!heroWarm) return;
+    heroWarm.mounted = false;
+    // Still parked behind the page: leave it alone so the first frame can finish.
+    if (!heroWarm.park.parentNode || heroWarm.park.parentNode === document.body) return;
+    heroWarm.gen += 1;
+    document.body.appendChild(heroWarm.park);
+    heroWarm.vids.forEach(function (v) {
+      v.classList.remove('fading');
+      v.style.opacity = '1';
+      try { v.pause(); } catch (e) {}
+    });
+    if (heroWarm.api) heroWarm.api.restack();
+  }
   function heroVideos() {
+    if (heroWarm) return '<div class="hero-videos" aria-hidden="true"></div>';
+    var clips = heroClipSrcs();
     return '<div class="hero-videos" aria-hidden="true">' +
-      '<video class="on" autoplay muted playsinline webkit-playsinline preload="auto"></video>' +
-      '<video muted playsinline webkit-playsinline preload="none"></video>' +
+      '<video class="over on" autoplay muted playsinline webkit-playsinline preload="auto" src="' + clips[0] + '"></video>' +
+      '<video class="under" muted playsinline webkit-playsinline preload="auto" src="' + clips[1 % clips.length] + '"></video>' +
       '</div>';
   }
   function pageHome() {
@@ -897,6 +1005,8 @@
       '<div class="login-wrap"><div class="login-card">' + inner + '</div></div></div>';
   }
   function renderLogin(msg) {
+    detachHeroPark();
+    warmHero();
     view = 'login';
     document.title = 'Sign in · AGENT HUB';
     $app.innerHTML = loginShell(
@@ -924,6 +1034,7 @@
     maybePlayIntro();
   }
   function renderOtp(ch, msg, okMsg) {
+    detachHeroPark();
     view = 'otp'; otpCh = ch;
     var hint = (ch && ch.emailHint) || 'your account email';
     document.title = 'Enter code · AGENT HUB';
@@ -955,6 +1066,7 @@
     syncHomeScreen();
   }
   function renderForgot(email, step, msg, okMsg, need) {
+    detachHeroPark();
     view = 'forgot';
     var two = step === 2; need = need || [];
     document.title = 'Reset password · AGENT HUB';
@@ -1172,59 +1284,88 @@
         v.removeAttribute('src');
         try { v.pause(); } catch (e) {}
       });
+      if (heroWarm) detachHeroPark();
       return;
     }
-    var slots = qsa('video', box);
+    if (heroWarm && heroWarm.api) {
+      heroWarm.mounted = true;
+      if (heroWarm.park.parentNode !== box) box.appendChild(heroWarm.park);
+      heroWarm.api.attach(hero);
+      heroWarm.api.play();
+      return;
+    }
+    var slots = heroWarm ? heroWarm.vids : qsa('video', box);
+    if (heroWarm) {
+      heroWarm.mounted = true;
+      if (heroWarm.park.parentNode !== box) box.appendChild(heroWarm.park);
+    }
     if (slots.length < 2 || !clips.length) return;
+    slots.forEach(function (v, i) {
+      prepHeroVideo(v);
+      if (!v._heroSrc) v._heroSrc = clips[i] || v.getAttribute('src') || '';
+    });
     var active = 0;
     var clipAt = [0, 1 % clips.length];
     var fading = false;
     var fadeMs = 1600;
+    var heroEl = hero;
     function showTap() {
-      box.classList.remove('off');
-      if (slots[active]) slots[active].classList.add('on');
-      if (hero) hero.classList.add('needs-gesture');
+      if (box) box.classList.remove('off');
+      if (slots[active]) slots[active].classList.add('on', 'over');
+      if (heroEl) heroEl.classList.add('needs-gesture');
     }
     function clearTap() {
-      if (hero) hero.classList.remove('needs-gesture');
+      if (heroEl) heroEl.classList.remove('needs-gesture');
     }
     function reveal(v) {
       if (!v || v !== slots[active]) return;
-      box.classList.remove('off');
-      v.classList.add('on');
+      if (box) box.classList.remove('off');
+      v.classList.add('on', 'over');
       clearTap();
     }
     function autoplayBlocked(err) {
       if (!err || err.name === 'NotAllowedError') return true;
       return /not allowed|user gesture|interact with|user agent/i.test(String(err.message || ''));
     }
-    function silence(v) {
-      v.muted = true;
-      v.defaultMuted = true;
-      v.playsInline = true;
-      v.setAttribute('muted', '');
-      v.setAttribute('playsinline', '');
-      v.setAttribute('webkit-playsinline', '');
-      v.removeAttribute('poster');
-      v.autoplay = false;
-      v.removeAttribute('autoplay');
+    function restack() {
+      slots.forEach(function (v, i) {
+        var top = i === active;
+        v.classList.toggle('over', top);
+        v.classList.toggle('under', !top);
+        v.classList.toggle('on', top);
+        if (!v.classList.contains('fading')) v.style.opacity = '1';
+      });
     }
     function arm(el, src) {
-      silence(el);
-      el.preload = 'auto';
+      prepHeroVideo(el);
+      el.autoplay = false;
+      el.removeAttribute('autoplay');
       if (el._heroSrc === src) return;
       el._heroSrc = src;
       el.src = src;
-      function hold() {
-        if (el.classList.contains('on')) return;
-        try { el.pause(); el.currentTime = 0; } catch (e) {}
-      }
-      el.addEventListener('loadeddata', hold, { once: true });
+      el.addEventListener('loadeddata', function parkFrame() {
+        if (el.classList.contains('over')) return;
+        try {
+          if (el.currentTime < 0.001) el.currentTime = 0.001;
+        } catch (e) {}
+        try { el.pause(); } catch (e) {}
+      }, { once: true });
     }
     function play(v) {
-      silence(v);
-      box.classList.remove('off');
-      v.classList.add('on');
+      if (!v || (box && box.classList.contains('off'))) return;
+      prepHeroVideo(v);
+      v.autoplay = true;
+      var wasLoop = v.loop || v.hasAttribute('loop');
+      v.loop = false;
+      v.removeAttribute('loop');
+      // The parked clip loops until Home is on screen. If that loop is about
+      // to end, start it again so the crossfade still has a visible clip.
+      if (wasLoop && isFinite(v.duration) && v.currentTime > v.duration - fadeMs / 1000 - 0.3) {
+        try { v.currentTime = 0.05; } catch (e) {}
+      }
+      v.setAttribute('autoplay', '');
+      if (box) box.classList.remove('off');
+      v.classList.add('on', 'over');
       var p = v.play();
       if (p && p.then) {
         p.then(function () { reveal(v); }).catch(function (err) {
@@ -1237,81 +1378,145 @@
       return p;
     }
     function goNext() {
-      if (fading || box.classList.contains('off')) return;
+      if (fading || (box && box.classList.contains('off'))) return;
+      if (heroWarm && !heroWarm.mounted) return;
       fading = true;
+      var gen = heroWarm ? heroWarm.gen : 0;
       var outgoing = active;
       var incoming = outgoing ? 0 : 1;
       var incomingClip = clipAt[incoming];
+      var prev = slots[outgoing];
       var next = slots[incoming];
-      box.appendChild(next);
-      next.classList.remove('on');
-      void next.offsetWidth;
-      try { next.pause(); next.currentTime = 0; } catch (e) {}
-      next.classList.add('on');
-      active = incoming;
-      play(next);
+      var started = false;
+      function aborted() {
+        return (heroWarm && heroWarm.gen !== gen) || !next.isConnected;
+      }
+      function begin() {
+        if (started || aborted()) return;
+        if (!(next.videoWidth > 1)) return;
+        started = true;
+        next.removeEventListener('playing', onPlaying);
+        prev.classList.add('over', 'fading');
+        next.classList.add('under');
+        next.classList.remove('over');
+        prev.style.opacity = '1';
+        void prev.offsetWidth;
+        prev.style.opacity = '0';
+        active = incoming;
+        setTimeout(function () {
+          if (aborted()) { fading = false; return; }
+          prev.classList.remove('fading', 'over', 'on');
+          prev.classList.add('under');
+          prev.style.opacity = '1';
+          next.classList.remove('under');
+          next.classList.add('over', 'on');
+          try { prev.pause(); } catch (e) {}
+          var follow = (incomingClip + 1) % clips.length;
+          arm(prev, clips[follow]);
+          clipAt[outgoing] = follow;
+          fading = false;
+        }, fadeMs);
+      }
+      function onPlaying() { begin(); }
+      next.addEventListener('playing', onPlaying);
+      prepHeroVideo(next);
+      next.autoplay = true;
+      try {
+        if (next.currentTime > 0.2 || next.currentTime < 0.001) next.currentTime = 0.001;
+      } catch (e) {}
+      var p = next.play();
+      if (p && p.then) {
+        p.then(function () { if (next.videoWidth > 1) begin(); }).catch(function (err) {
+          if (err && err.name === 'AbortError') return;
+          if (autoplayBlocked(err)) showTap();
+        });
+      }
       setTimeout(function () {
-        var prev = slots[outgoing];
-        prev.classList.remove('on');
-        try { prev.pause(); } catch (e) {}
-        var follow = (incomingClip + 1) % clips.length;
-        arm(prev, clips[follow]);
-        clipAt[outgoing] = follow;
+        if (started || aborted()) return;
         fading = false;
-      }, fadeMs);
+        next.removeEventListener('playing', onPlaying);
+        try { next.pause(); } catch (e) {}
+        restack();
+      }, 1200);
     }
-    slots.forEach(function (v) {
-      silence(v);
-      v.onplaying = function () { reveal(v); };
-      v.onerror = function () {
-        if (v !== slots[active] || fading) return;
-        goNext();
-      };
-      v.ontimeupdate = function () {
-        if (v !== slots[active] || fading || !isFinite(v.duration)) return;
-        if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
-      };
-      v.onended = function () { if (v === slots[active]) goNext(); };
-    });
-    arm(slots[0], clips[0]);
-    arm(slots[1], clips[clipAt[1]]);
-    box.classList.remove('off');
-    slots[0].classList.add('on');
-    slots[1].classList.remove('on');
-    function startHero() {
-      if (!qs('.hero-videos')) return;
-      play(slots[active]);
-    }
-    if (qs('.brand-intro')) {
+    if (!heroWarm || !heroWarm.bound) {
       slots.forEach(function (v) {
-        v.removeAttribute('autoplay');
-        try { v.pause(); } catch (e) {}
+        v.onplaying = function () { reveal(v); };
+        v.onerror = function () {
+          if (v !== slots[active] || fading) return;
+          goNext();
+        };
+        v.ontimeupdate = function () {
+          if (v !== slots[active] || fading || !isFinite(v.duration)) return;
+          if (!heroWarm || heroWarm.mounted) {
+            if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
+          }
+        };
+        v.onended = function () {
+          if (v === slots[active] && (!heroWarm || heroWarm.mounted)) goNext();
+        };
       });
-      document.addEventListener('enesma-intro-done', function onIntro() {
-        document.removeEventListener('enesma-intro-done', onIntro);
-        startHero();
-      });
-    } else {
-      startHero();
+      if (!slots[1]._heroSrc) arm(slots[1], clips[clipAt[1]]);
+      else slots[1]._heroSrc = slots[1]._heroSrc || clips[clipAt[1]];
     }
-    if (hero) {
-      hero.addEventListener('click', function () {
-        if (!hero.classList.contains('needs-gesture')) return;
-        play(slots[active]);
-      });
+    restack();
+    if (box) box.classList.remove('off');
+    var io = null;
+    function attach(nextHero) {
+      heroEl = nextHero || heroEl;
+      if (io) { try { io.disconnect(); } catch (e) {} io = null; }
+      if (heroEl && !heroEl._heroClick) {
+        heroEl._heroClick = true;
+        heroEl.addEventListener('click', function () {
+          if (!heroEl.classList.contains('needs-gesture')) return;
+          play(slots[active]);
+        });
+      }
+      if ('IntersectionObserver' in window && heroEl) {
+        io = new IntersectionObserver(function (ents) {
+          var vis = ents[0] && ents[0].isIntersecting;
+          if (!vis) {
+            if (heroEl && heroEl.getBoundingClientRect().height < 8) return;
+            if (fading) return;
+            slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
+          } else {
+            play(slots[active]);
+          }
+        }, { threshold: 0.2 });
+        io.observe(heroEl);
+        if (heroWarm) heroWarm.io = io;
+      }
     }
-    if ('IntersectionObserver' in window && qs('.hero')) {
-      var io = new IntersectionObserver(function (ents) {
-        var vis = ents[0] && ents[0].isIntersecting;
-        if (!vis) {
-          if (hero && hero.getBoundingClientRect().height < 8) return;
-          slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
-        } else if (!qs('.brand-intro')) play(slots[active]);
-      }, { threshold: 0.2 });
-      io.observe(qs('.hero'));
+    var api = {
+      play: function () { play(slots[active]); },
+      attach: attach,
+      restack: restack
+    };
+    if (heroWarm) {
+      heroWarm.api = api;
+      heroWarm.bound = true;
+      heroWarm.mounted = true;
     }
+    attach(hero);
+    // Play now, including underneath the gold intro, so the handoff is footage.
+    api.play();
   }
-  function renderApp() {
+  function renderApp(force) {
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!reduceMotion && path() === '/') {
+      warmHero();
+      if (!force && heroWarm && !heroFrameReady()) {
+        if (heroWarm._waiting) return;
+        heroWarm._waiting = true;
+        whenHeroFrame(2000).then(function () {
+          if (heroWarm) heroWarm._waiting = false;
+          if (!S.token || path() !== '/') return;
+          renderApp(true);
+        });
+        return;
+      }
+    }
+    detachHeroPark();
     clearHolidayBindings();
     view = 'app';
     document.title = titles() + ' · ENESMA Realty';
@@ -1353,6 +1558,7 @@
   function boot() {
     syncHomeScreen();
     Auth.bootSession();
+    if (!S.token || path() === '/') warmHero();
     if (!S.token) { renderLogin(); return; }
     Auth.api('me').then(function (d) {
       S.user = (d && d.user) || d;
