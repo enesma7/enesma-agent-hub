@@ -1,0 +1,69 @@
+{
+  "apiUrl": "https://script.google.com/macros/s/AKfycbzYtmzYv74D0yi0sVy-_JaLDYlNLSU795sqhREsqbGYYU1BEDR5KDAB7Du9Mm0Gp4ba/exec",
+  "hubOrigin": "https://agent.enesmarealty.com",
+  "home": [
+    {
+      "title": "Compliance",
+      "sub": "Contracts, disclosures & addenda",
+      "alt": "Compliance. Contracts, disclosures & addenda",
+      "href": "https://agent.enesmarealty.com/#/compliance",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-01.jpg"
+    },
+    {
+      "title": "Marketing",
+      "sub": "Logos, colors & templates",
+      "alt": "Marketing. Logos, colors & templates",
+      "href": "https://agent.enesmarealty.com/#/marketing-templates",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-02.jpg"
+    },
+    {
+      "title": "Technology",
+      "sub": "CRM, MLS & the tools we use",
+      "alt": "Technology. CRM, MLS & the tools we use",
+      "href": "https://agent.enesmarealty.com/#/technology",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-03.jpg"
+    },
+    {
+      "title": "Office Listings",
+      "sub": "Current ENESMA listings",
+      "alt": "Office Listings. Current ENESMA listings",
+      "href": "https://agent.enesmarealty.com/#/listings",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-04.jpg"
+    },
+    {
+      "title": "Training Library",
+      "sub": "Recorded sessions & coaching",
+      "alt": "Training Library. Recorded sessions & coaching",
+      "href": "https://agent.enesmarealty.com/#/training",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-05.jpg"
+    },
+    {
+      "title": "Preferred Partners",
+      "sub": "Escrow, lenders, inspectors & more",
+      "alt": "Preferred Partners. Escrow, lenders, inspectors & more",
+      "href": "https://agent.enesmarealty.com/#/preferred-partners",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-06.jpg"
+    },
+    {
+      "title": "Calculators",
+      "sub": "Flip, net sheet & mortgage",
+      "alt": "Calculators. Flip, net sheet & mortgage",
+      "href": "https://agent.enesmarealty.com/#/calculators",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-07.jpg"
+    },
+    {
+      "title": "Office Hubs",
+      "sub": "Reserve a desk or the conference room",
+      "alt": "Office Hubs. Reserve a desk or the conference room",
+      "href": "https://agent.enesmarealty.com/#/office-hubs",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-08.jpg"
+    },
+    {
+      "title": "Contact the Broker",
+      "sub": "Enrique Esparza, DRE# 01926362",
+      "alt": "Contact the Broker. Enrique Esparza, DRE# 01926362",
+      "href": "https://agent.enesmarealty.com/#/agents/enrique-esparza",
+      "img": "https://agent.enesmarealty.com/assets/sites/home-09.jpg"
+    }
+  ]
+}
