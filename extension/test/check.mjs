@@ -59,6 +59,8 @@ const manifest = JSON.parse(readFileSync(join(root, 'manifest.json'), 'utf8'));
 assert(manifest.manifest_version === 3, 'mv3');
 assert(manifest.name === 'ENESMA AGENT HUB', 'extension name');
 assert(manifest.description.length <= 132, 'short description is ' + manifest.description.length + ' characters');
+assert(!/tiles stay hidden/i.test(manifest.description), 'short description drops the hidden-tiles line');
+assert(/Sign in with your Hub account/.test(manifest.description), 'short description keeps the sign-in line');
 assert(JSON.stringify(manifest.permissions) === '["cookies"]', 'minimal permissions');
 assert(!manifest.content_scripts, 'no content scripts');
 assert(!manifest.host_permissions.some(function (p) { return p === '<all_urls>' || p.includes('google.com') && !p.includes('script.google'); }), 'no broad google hosts');
