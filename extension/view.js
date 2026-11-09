@@ -8,8 +8,10 @@ function esc(s) {
 
 function header(extra) {
   return '<header class="top">' +
-    '<img src="assets/logo-white.png" alt="ENESMA Realty">' +
+    '<div class="brand">' +
+    '<img src="assets/logo-white.png" srcset="assets/logo-white.png 1x, assets/logo-white@2x.png 2x, assets/logo-white@3x.png 3x" width="136" height="40" alt="ENESMA Realty">' +
     '<span class="hub-label">AGENT HUB</span>' +
+    '</div>' +
     (extra || '') +
     '</header>';
 }

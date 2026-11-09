@@ -23,21 +23,31 @@ img { display: block; max-width: 100%; }
   color: var(--white);
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 8px 12px;
   position: sticky;
   top: 0;
   z-index: 2;
 }
-.top img { height: 28px; width: auto; max-width: none; flex: 0 0 auto; }
-.hub-label {
+.brand {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   flex: 0 0 auto;
+  min-width: 0;
+}
+.brand img { height: 40px; width: 136px; max-width: none; }
+.hub-label {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 1px solid var(--gold-b);
   font-size: 11px;
-  letter-spacing: .16em;
+  letter-spacing: .14em;
   font-weight: 500;
-  border-left: 1px solid rgba(251, 251, 251, .28);
-  padding-left: 10px;
-  line-height: 1.1;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--gold-a);
 }
 .who { margin-left: auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; flex: 1 1 auto; }
 .user-chip {

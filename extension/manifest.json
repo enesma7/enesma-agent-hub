@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ENESMA AGENT HUB",
   "version": "1.0.0",
-  "description": "Open ENESMA Agent Hub tools from Chrome. Sign in with your Hub account. Tiles stay hidden until you sign in.",
+  "description": "Open ENESMA Agent Hub tools from Chrome. Sign in with your Hub account.",
   "minimum_chrome_version": "109",
   "action": {
     "default_title": "ENESMA AGENT HUB",

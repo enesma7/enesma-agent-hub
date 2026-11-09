@@ -21,9 +21,9 @@ ENESMA AGENT HUB
 
 ## Short description
 
-132 characters is the limit. This one is 108.
+132 characters is the limit. This one is 72.
 
-Open ENESMA Agent Hub tools from Chrome. Sign in with your Hub account. Tiles stay hidden until you sign in.
+Open ENESMA Agent Hub tools from Chrome. Sign in with your Hub account.
 
 ## Detailed description
 
