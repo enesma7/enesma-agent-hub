@@ -1016,8 +1016,24 @@
     overlay.setAttribute('role', 'button');
     overlay.setAttribute('tabindex', '0');
     overlay.setAttribute('aria-label', 'ENESMA');
-    var canvas = document.createElement('canvas');
-    overlay.appendChild(canvas);
+    var mark = document.createElement('div');
+    mark.className = 'brand-intro-mark';
+    var zoom = document.createElement('div');
+    zoom.className = 'brand-intro-zoom';
+    var logo = document.createElement('img');
+    logo.className = 'brand-intro-logo';
+    logo.alt = '';
+    logo.draggable = false;
+    logo.src = 'assets/logo-gold.svg?v=1';
+    var glint = document.createElement('div');
+    glint.className = 'brand-intro-glint';
+    glint.setAttribute('aria-hidden', 'true');
+    var streak = document.createElement('span');
+    glint.appendChild(streak);
+    zoom.appendChild(logo);
+    zoom.appendChild(glint);
+    mark.appendChild(zoom);
+    overlay.appendChild(mark);
     document.body.appendChild(overlay);
     var finished = false;
     var raf = 0;
@@ -1043,87 +1059,48 @@
     overlay._endIntro = finish;
     document.addEventListener('keydown', onKey);
     safety = setTimeout(finish, INTRO_MS + 700);
-    var img = new Image();
-    img.onload = function () { if (!finished) playMark(img); };
-    img.onerror = function () { finish(); };
-    img.src = 'assets/logo-gold-foil.png';
-    function playMark(image) {
+    function playMark() {
       var start = 0;
       function frame(now) {
         if (finished || token !== introToken) return;
         if (!start) start = now;
         var t = Math.min(1, (now - start) / INTRO_MS);
-        drawIntroFrame(canvas, image, t);
+        drawIntroFrame(zoom, streak, overlay, t);
         if (t >= 1) { finish(); return; }
         raf = requestAnimationFrame(frame);
       }
       raf = requestAnimationFrame(frame);
     }
-  }
-  function drawIntroFrame(canvas, image, t) {
-    var cssW = Math.min(window.innerWidth * 0.72, 680);
-    var cssH = cssW * (image.height / image.width);
-    var dpr = window.devicePixelRatio || 1;
-    if (cssW * dpr > image.width) dpr = image.width / cssW;
-    var bw = Math.max(1, Math.round(cssW * dpr));
-    var bh = Math.max(1, Math.round(cssH * dpr));
-    if (canvas.width !== bw || canvas.height !== bh) {
-      canvas.width = bw;
-      canvas.height = bh;
-      canvas.style.width = cssW + 'px';
-      canvas.style.height = cssH + 'px';
+    if (logo.complete) playMark();
+    else {
+      logo.onload = function () { if (!finished) playMark(); };
+      logo.onerror = function () { finish(); };
     }
-    var ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cssW, cssH);
-    var scale = 1;
+  }
+  function drawIntroFrame(zoom, streak, overlay, t) {
+    var visual = 1;
     var alpha = 1;
     var veil = 1;
     if (t < 0.14) {
-      var u = t / 0.14;
-      var e = 1 - Math.pow(1 - u, 3);
-      scale = 1.1 - 0.1 * e;
-      alpha = e;
-    } else if (t < 0.46) {
-      scale = 1;
-      alpha = 1;
-    } else if (t < 0.74) {
-      var u2 = (t - 0.46) / 0.28;
-      var e2 = u2 * u2 * (3 - 2 * u2);
-      scale = 1 - 0.5 * e2;
-      alpha = 1;
-      veil = 1;
+      alpha = 1 - Math.pow(1 - t / 0.14, 3);
+    } else if (t >= 0.46) {
+      var u = (t - 0.46) / 0.54;
+      var rush = u * u;
+      visual = 1 + 7 * rush;
+      var fadeU = Math.max(0, (u - 0.22) / 0.78);
+      veil = 1 - fadeU * fadeU * (3 - 2 * fadeU);
+    }
+    zoom.style.transform = 'translate(-50%, -50%) scale(' + (visual / 8).toFixed(4) + ')';
+    zoom.style.opacity = alpha.toFixed(3);
+    overlay.style.opacity = veil.toFixed(3);
+    if (t >= 0.14 && t < 0.46) {
+      var g = (t - 0.14) / 0.32;
+      var sweep = g * g * (3 - 2 * g);
+      streak.style.opacity = '1';
+      streak.style.transform = 'translate3d(' + (-150 + sweep * 860).toFixed(1) + '%, 0, 0)';
     } else {
-      var u3 = (t - 0.74) / 0.26;
-      var e3 = u3 * u3 * (3 - 2 * u3);
-      scale = 0.5 - 0.08 * e3;
-      alpha = 1 - e3;
-      veil = 1 - e3;
+      streak.style.opacity = '0';
     }
-    var overlay = canvas.parentNode;
-    if (overlay) overlay.style.background = 'rgba(0,0,7,' + veil.toFixed(3) + ')';
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(cssW / 2, cssH / 2);
-    ctx.scale(scale, scale);
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(image, -cssW / 2, -cssH / 2, cssW, cssH);
-    if (t > 0.14 && t < 0.48) {
-      var g = (t - 0.14) / 0.34;
-      var x = -cssW * 0.7 + g * cssW * 1.45;
-      var band = Math.max(22, cssW * 0.13);
-      var grad = ctx.createLinearGradient(x - band, -cssH * 0.2, x + band, cssH * 0.35);
-      grad.addColorStop(0, 'rgba(255,255,255,0)');
-      grad.addColorStop(0.42, 'rgba(255,236,190,0)');
-      grad.addColorStop(0.5, 'rgba(255,255,255,1)');
-      grad.addColorStop(0.58, 'rgba(255,236,190,0)');
-      grad.addColorStop(1, 'rgba(255,255,255,0)');
-      ctx.globalCompositeOperation = 'source-atop';
-      ctx.fillStyle = grad;
-      ctx.fillRect(-cssW / 2, -cssH / 2, cssW, cssH);
-    }
-    ctx.restore();
   }
 
   function bindHeroVideos() {
