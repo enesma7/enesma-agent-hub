@@ -381,9 +381,9 @@ window.HUB_CONTENT = {
     },
     {
       "title": "Veterans Day",
-      "video": "assets/holidays/veterans.mp4?v=3",
-      "poster": "assets/holidays/veterans.jpg?v=3",
-      "img": "assets/holidays/veterans.jpg?v=3"
+      "video": "assets/holidays/veterans.mp4?v=4",
+      "poster": "assets/holidays/veterans.jpg?v=4",
+      "img": "assets/holidays/veterans.jpg?v=4"
     },
     {
       "title": "Thanksgiving",
@@ -446,6 +446,12 @@ window.HUB_CONTENT = {
       "sub": "Send, sign and store",
       "href": "https://app.enesmarealty.com/esign/",
       "img": "assets/tech/esign.svg"
+    },
+    {
+      "title": "Open House Dashboard",
+      "sub": "Guest sign-in sheets and QR codes",
+      "href": "https://app.enesmarealty.com/openhouse/",
+      "img": "assets/sites/technology-09.jpg"
     }
   ],
   "listing": {
@@ -657,7 +663,8 @@ window.HUB_CONTENT = {
       { "img": "assets/sites/technology-05.jpg", "href": "https://cloudcma.com/login", "ext": true, "alt": "Cloud CMA. CMAs, presentations and flyers" },
       { "img": "assets/sites/technology-06.jpg", "href": "https://x.ai/pricing", "ext": true, "alt": "Grok Bot. AI organization" },
       { "img": "assets/sites/technology-07.jpg", "href": "https://chatgpt.com", "ext": true, "alt": "ChatGPT by OpenAI. Listing copy, emails & scripts" },
-      { "img": "assets/sites/technology-08.jpg", "href": "https://app.enesmarealty.com/esign/", "ext": true, "alt": "E-Sign. Send, sign and store, all in one place.", "foot": "Send, sign and store — all in one place.", "steps": ["Upload", "Place", "Sign", "Store"] }
+      { "img": "assets/sites/technology-08.jpg", "href": "https://app.enesmarealty.com/esign/", "ext": true, "alt": "E-Sign. Send, sign and store, all in one place.", "foot": "Send, sign and store — all in one place.", "steps": ["Upload", "Place", "Sign", "Store"] },
+      { "img": "assets/sites/technology-09.jpg", "href": "https://app.enesmarealty.com/openhouse/", "ext": true, "alt": "Open House Dashboard. Guest sign-in sheets and QR codes" }
     ],
     "listing": {
       "img": "assets/sites/listings-01.jpg",

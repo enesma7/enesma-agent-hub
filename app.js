@@ -24,6 +24,50 @@
     if (p.charAt(0) !== '/') p = '/' + p;
     return p.replace(/\/+$/, '') || '/';
   }
+  function isCalculatorsHome() {
+    return path().split('?')[0] === '/calculators';
+  }
+  function removeHeadNodes(selector) {
+    qsa(selector, document.head).forEach(function (node) {
+      if (node.parentNode) node.parentNode.removeChild(node);
+    });
+  }
+  function insertHeadLink(attrs) {
+    var link = document.createElement('link');
+    Object.keys(attrs).forEach(function (key) { link.setAttribute(key, attrs[key]); });
+    document.head.appendChild(link);
+  }
+  function replaceMeta(name, content) {
+    removeHeadNodes('meta[name="' + name + '"]');
+    var meta = document.createElement('meta');
+    meta.setAttribute('name', name);
+    meta.setAttribute('content', content);
+    document.head.appendChild(meta);
+  }
+  // Safari reads the existing <link> nodes when the share sheet opens, so
+  // home-screen icons are swapped by replacing those elements.
+  function syncHomeScreen() {
+    var calc = isCalculatorsHome();
+    removeHeadNodes('link[rel="apple-touch-icon"], link[rel="apple-touch-icon-precomposed"], link[rel="icon"], link[rel="shortcut icon"], link[rel="manifest"]');
+    if (calc) {
+      insertHeadLink({ rel: 'icon', type: 'image/png', sizes: '32x32', href: '/assets/icons/calc/favicon-32-calc-v2.png' });
+      insertHeadLink({ rel: 'apple-touch-icon', sizes: '180x180', href: '/assets/icons/calc/apple-touch-icon-calc-v2.png' });
+      insertHeadLink({ rel: 'manifest', href: '/calculators/manifest.webmanifest?v=1' });
+      replaceMeta('apple-mobile-web-app-title', 'Calculators');
+      document.title = 'Calculators';
+      return;
+    }
+    insertHeadLink({ rel: 'icon', type: 'image/png', href: 'favicon-32.png' });
+    insertHeadLink({ rel: 'apple-touch-icon', href: 'apple-touch-icon.png' });
+    replaceMeta('apple-mobile-web-app-title', 'AGENT HUB');
+    if (document.title === 'Calculators') {
+      if (view === 'login') document.title = 'Sign in · AGENT HUB';
+      else if (view === 'otp') document.title = 'Enter code · AGENT HUB';
+      else if (view === 'forgot') document.title = 'Reset password · AGENT HUB';
+      else if (view === 'app') document.title = titles() + ' · ENESMA Realty';
+      else document.title = 'AGENT HUB · ENESMA Realty';
+    }
+  }
   function userName() {
     var u = S.user || {};
     return u.name || [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email || 'Agent';
@@ -185,22 +229,27 @@
     return '<div class="search-scrim" id="searchScrim"><div class="search-box"><input id="searchIn" type="search" placeholder="Search the Hub" autofocus><div id="searchHits"></div></div></div>';
   }
 
-  function heroVideos() {
-    // Rancho Palos Verdes / San Pedro sunset drone, no people. Pexels 27954154.
-    // Downtown Los Angeles and the 6th Street Viaduct, aerial.
-    // Dana Point Harbor aerial. Southern California harbor, no people.
-    // Snowy mountain aerial. Southern California mountain snow, no people.
-    // Joshua Tree National Park scenic, no people.
-    var clips = [
-      'assets/hero/laguna-coast.mp4?v=27',
-      'assets/hero/la-skyline.mp4',
-      'assets/hero/catalina.mp4',
-      'assets/hero/big-bear.mp4',
-      'assets/hero/joshua-tree.mp4'
+  function heroClipSrcs() {
+    return [
+      'assets/hero/hero-01-santa-monica.mp4?v=1',
+      'assets/hero/hero-02-hollywood.mp4?v=1',
+      'assets/hero/hero-03-downtown-la.mp4?v=1',
+      'assets/hero/hero-04-big-bear.mp4?v=1',
+      'assets/hero/hero-05-palm-springs.mp4?v=1',
+      'assets/hero/hero-06-palos-verdes.mp4?v=1',
+      'assets/hero/hero-07-catalina.mp4?v=1',
+      'assets/hero/hero-08-marina-del-rey.mp4?v=1',
+      'assets/hero/hero-09-beverly-hills.mp4?v=1',
+      'assets/hero/hero-10-long-beach.mp4?v=1',
+      'assets/hero/hero-11-redondo-beach.mp4?v=1',
+      'assets/hero/hero-12-san-diego.mp4?v=1'
     ];
-    return '<div class="hero-videos" aria-hidden="true">' + clips.map(function (src, i) {
-      return '<video' + (i === 0 ? ' class="on" autoplay' : '') + ' muted playsinline webkit-playsinline preload="' + (i === 0 ? 'auto' : 'metadata') + '"><source src="' + src + '" type="video/mp4"></video>';
-    }).join('') + '</div>';
+  }
+  function heroVideos() {
+    return '<div class="hero-videos" aria-hidden="true">' +
+      '<video class="on" autoplay muted playsinline webkit-playsinline preload="auto"></video>' +
+      '<video muted playsinline webkit-playsinline preload="none"></video>' +
+      '</div>';
   }
   function pageHome() {
     var ev = upcomingEvents();
@@ -871,6 +920,8 @@
         afterAuth();
       }).catch(function (err) { var keep = qs('#lu').value; renderLogin(err.message); qs('#lu').value = keep; });
     };
+    syncHomeScreen();
+    maybePlayIntro();
   }
   function renderOtp(ch, msg, okMsg) {
     view = 'otp'; otpCh = ch;
@@ -901,6 +952,7 @@
         .catch(function (err) { renderOtp(ch, err.message); });
     };
     setTimeout(function () { var el = qs('#oc'); if (el) el.focus(); }, 30);
+    syncHomeScreen();
   }
   function renderForgot(email, step, msg, okMsg, need) {
     view = 'forgot';
@@ -953,6 +1005,7 @@
         renderForgot(em, 2, unsupported(err), '', need);
       });
     };
+    syncHomeScreen();
   }
 
   function bindChrome() {
@@ -989,34 +1042,154 @@
     }
   }
 
+  var INTRO_MS = 3000;
+  var introToken = 0;
+
+  function introSeen() {
+    try { return sessionStorage.getItem('enesma_intro_seen') === '1'; }
+    catch (e) { return false; }
+  }
+  function markIntroSeen() {
+    try { sessionStorage.setItem('enesma_intro_seen', '1'); } catch (e) {}
+  }
+  function endBrandIntro(token) {
+    if (token && token !== introToken) return;
+    var el = qs('.brand-intro');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    try { document.dispatchEvent(new Event('enesma-intro-done')); } catch (e) {}
+  }
+  function maybePlayIntro() {
+    if (introSeen()) return;
+    if (S.token && path() !== '/') {
+      markIntroSeen();
+      return;
+    }
+    markIntroSeen();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var token = ++introToken;
+    var overlay = document.createElement('div');
+    overlay.className = 'brand-intro';
+    overlay.setAttribute('role', 'button');
+    overlay.setAttribute('tabindex', '0');
+    overlay.setAttribute('aria-label', 'ENESMA');
+    var mark = document.createElement('div');
+    mark.className = 'brand-intro-mark';
+    var zoom = document.createElement('div');
+    zoom.className = 'brand-intro-zoom';
+    var logo = document.createElement('img');
+    logo.className = 'brand-intro-logo';
+    logo.alt = '';
+    logo.draggable = false;
+    logo.src = 'assets/logo-gold.svg?v=1';
+    var glint = document.createElement('div');
+    glint.className = 'brand-intro-glint';
+    glint.setAttribute('aria-hidden', 'true');
+    var streak = document.createElement('span');
+    glint.appendChild(streak);
+    zoom.appendChild(logo);
+    zoom.appendChild(glint);
+    mark.appendChild(zoom);
+    overlay.appendChild(mark);
+    document.body.appendChild(overlay);
+    var finished = false;
+    var raf = 0;
+    var safety = 0;
+    function finish() {
+      if (finished || token !== introToken) return;
+      finished = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (safety) clearTimeout(safety);
+      document.removeEventListener('keydown', onKey);
+      endBrandIntro(token);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        finish();
+      }
+    }
+    overlay.addEventListener('pointerdown', function (e) {
+      e.preventDefault();
+      finish();
+    });
+    overlay._endIntro = finish;
+    document.addEventListener('keydown', onKey);
+    safety = setTimeout(finish, INTRO_MS + 700);
+    function playMark() {
+      var start = 0;
+      function frame(now) {
+        if (finished || token !== introToken) return;
+        if (!start) start = now;
+        var t = Math.min(1, (now - start) / INTRO_MS);
+        drawIntroFrame(zoom, streak, overlay, t);
+        if (t >= 1) { finish(); return; }
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+    }
+    if (logo.complete) playMark();
+    else {
+      logo.onload = function () { if (!finished) playMark(); };
+      logo.onerror = function () { finish(); };
+    }
+  }
+  function drawIntroFrame(zoom, streak, overlay, t) {
+    var visual = 1;
+    var alpha = 1;
+    var veil = 1;
+    if (t < 0.14) {
+      alpha = 1 - Math.pow(1 - t / 0.14, 3);
+    } else if (t >= 0.46) {
+      var u = (t - 0.46) / 0.54;
+      var rush = u * u;
+      visual = 1 + 7 * rush;
+      var fadeU = Math.max(0, (u - 0.22) / 0.78);
+      veil = 1 - fadeU * fadeU * (3 - 2 * fadeU);
+    }
+    zoom.style.transform = 'translate(-50%, -50%) scale(' + (visual / 8).toFixed(4) + ')';
+    zoom.style.opacity = alpha.toFixed(3);
+    overlay.style.opacity = veil.toFixed(3);
+    if (t >= 0.14 && t < 0.46) {
+      var g = (t - 0.14) / 0.32;
+      var sweep = g * g * (3 - 2 * g);
+      streak.style.opacity = '1';
+      streak.style.transform = 'translate3d(' + (-150 + sweep * 860).toFixed(1) + '%, 0, 0)';
+    } else {
+      streak.style.opacity = '0';
+    }
+  }
+
   function bindHeroVideos() {
     var box = qs('.hero-videos');
     if (!box) return;
     var hero = box.closest('.hero');
+    var clips = heroClipSrcs();
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       box.classList.add('off');
       qsa('video', box).forEach(function (v) {
         v.removeAttribute('autoplay');
         v.removeAttribute('poster');
+        v.removeAttribute('src');
         try { v.pause(); } catch (e) {}
       });
       return;
     }
-    var vids = qsa('video', box);
-    if (!vids.length) return;
-    var i = 0;
+    var slots = qsa('video', box);
+    if (slots.length < 2 || !clips.length) return;
+    var active = 0;
+    var clipAt = [0, 1 % clips.length];
     var fading = false;
     var fadeMs = 1600;
     function showTap() {
       box.classList.remove('off');
-      if (vids[i]) vids[i].classList.add('on');
+      if (slots[active]) slots[active].classList.add('on');
       if (hero) hero.classList.add('needs-gesture');
     }
     function clearTap() {
       if (hero) hero.classList.remove('needs-gesture');
     }
     function reveal(v) {
-      if (!v || v !== vids[i]) return;
+      if (!v || v !== slots[active]) return;
       box.classList.remove('off');
       v.classList.add('on');
       clearTap();
@@ -1025,7 +1198,7 @@
       if (!err || err.name === 'NotAllowedError') return true;
       return /not allowed|user gesture|interact with|user agent/i.test(String(err.message || ''));
     }
-    function play(v) {
+    function silence(v) {
       v.muted = true;
       v.defaultMuted = true;
       v.playsInline = true;
@@ -1033,6 +1206,23 @@
       v.setAttribute('playsinline', '');
       v.setAttribute('webkit-playsinline', '');
       v.removeAttribute('poster');
+      v.autoplay = false;
+      v.removeAttribute('autoplay');
+    }
+    function arm(el, src) {
+      silence(el);
+      el.preload = 'auto';
+      if (el._heroSrc === src) return;
+      el._heroSrc = src;
+      el.src = src;
+      function hold() {
+        if (el.classList.contains('on')) return;
+        try { el.pause(); el.currentTime = 0; } catch (e) {}
+      }
+      el.addEventListener('loadeddata', hold, { once: true });
+    }
+    function play(v) {
+      silence(v);
       box.classList.remove('off');
       v.classList.add('on');
       var p = v.play();
@@ -1046,65 +1236,68 @@
       }
       return p;
     }
-    function startFromGesture() {
-      var v = vids[i] || vids[0];
-      if (!v) return;
-      box.classList.remove('off');
-      v.classList.add('on');
-      play(v);
-    }
     function goNext() {
       if (fading || box.classList.contains('off')) return;
       fading = true;
-      var cur = vids[i];
-      var n = (i + 1) % vids.length;
-      var next = vids[n];
-      try { next.currentTime = 0; } catch (e) {}
+      var outgoing = active;
+      var incoming = outgoing ? 0 : 1;
+      var incomingClip = clipAt[incoming];
+      var next = slots[incoming];
+      box.appendChild(next);
+      next.classList.remove('on');
+      void next.offsetWidth;
+      try { next.pause(); next.currentTime = 0; } catch (e) {}
       next.classList.add('on');
-      i = n;
+      active = incoming;
       play(next);
       setTimeout(function () {
-        cur.classList.remove('on');
-        cur.pause();
+        var prev = slots[outgoing];
+        prev.classList.remove('on');
+        try { prev.pause(); } catch (e) {}
+        var follow = (incomingClip + 1) % clips.length;
+        arm(prev, clips[follow]);
+        clipAt[outgoing] = follow;
         fading = false;
       }, fadeMs);
     }
-    vids.forEach(function (v) {
-      v.muted = true;
-      v.defaultMuted = true;
-      v.playsInline = true;
-      v.setAttribute('muted', '');
-      v.setAttribute('playsinline', '');
-      v.setAttribute('webkit-playsinline', '');
-      v.removeAttribute('poster');
+    slots.forEach(function (v) {
+      silence(v);
       v.onplaying = function () { reveal(v); };
       v.onerror = function () {
-        if (v !== vids[i] || v._heroSkipped) return;
-        v._heroSkipped = true;
-        v.classList.remove('on');
-        var n = (i + 1) % vids.length;
-        if (n === i) {
-          v.classList.add('on');
-          return;
-        }
-        i = n;
-        vids[i].classList.add('on');
-        box.classList.remove('off');
-        play(vids[i]);
+        if (v !== slots[active] || fading) return;
+        goNext();
       };
       v.ontimeupdate = function () {
-        if (v !== vids[i] || fading || !isFinite(v.duration)) return;
+        if (v !== slots[active] || fading || !isFinite(v.duration)) return;
         if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
       };
-      v.onended = function () { if (v === vids[i]) goNext(); };
+      v.onended = function () { if (v === slots[active]) goNext(); };
     });
+    arm(slots[0], clips[0]);
+    arm(slots[1], clips[clipAt[1]]);
     box.classList.remove('off');
-    vids[0].classList.add('on');
-    play(vids[0]);
+    slots[0].classList.add('on');
+    slots[1].classList.remove('on');
+    function startHero() {
+      if (!qs('.hero-videos')) return;
+      play(slots[active]);
+    }
+    if (qs('.brand-intro')) {
+      slots.forEach(function (v) {
+        v.removeAttribute('autoplay');
+        try { v.pause(); } catch (e) {}
+      });
+      document.addEventListener('enesma-intro-done', function onIntro() {
+        document.removeEventListener('enesma-intro-done', onIntro);
+        startHero();
+      });
+    } else {
+      startHero();
+    }
     if (hero) {
       hero.addEventListener('click', function () {
         if (!hero.classList.contains('needs-gesture')) return;
-        startFromGesture();
+        play(slots[active]);
       });
     }
     if ('IntersectionObserver' in window && qs('.hero')) {
@@ -1112,8 +1305,8 @@
         var vis = ents[0] && ents[0].isIntersecting;
         if (!vis) {
           if (hero && hero.getBoundingClientRect().height < 8) return;
-          vids.forEach(function (v) { v.pause(); });
-        } else play(vids[i]);
+          slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
+        } else if (!qs('.brand-intro')) play(slots[active]);
       }, { threshold: 0.2 });
       io.observe(qs('.hero'));
     }
@@ -1124,6 +1317,7 @@
     document.title = titles() + ' · ENESMA Realty';
     $app.innerHTML = headerHtml() + pageFor(path()) + footerHtml() + searchOverlay();
     bindChrome();
+    maybePlayIntro();
     bindHeroVideos();
     bindHolidayTiles();
     var stage = qs('[data-calc]');
@@ -1133,6 +1327,7 @@
       if (mount && host) mount(host);
     }
     window.scrollTo(0, 0);
+    syncHomeScreen();
   }
   function afterAuth() {
     if (!location.hash || location.hash === '#/login') location.hash = '#/';
@@ -1147,9 +1342,16 @@
     renderApp();
   }
 
-  window.addEventListener('hashchange', function () { searchOpen = false; onRoute(); });
+  window.addEventListener('hashchange', function () {
+    var intro = qs('.brand-intro');
+    if (intro && intro._endIntro) intro._endIntro();
+    searchOpen = false;
+    onRoute();
+  });
+  window.addEventListener('hashchange', syncHomeScreen);
 
   function boot() {
+    syncHomeScreen();
     Auth.bootSession();
     if (!S.token) { renderLogin(); return; }
     Auth.api('me').then(function (d) {
