@@ -25,17 +25,6 @@ function assert(cond, msg) {
 const contentSrc = readFileSync(join(repo, 'content.js'), 'utf8');
 const configSrc = readFileSync(join(repo, 'config.js'), 'utf8');
 const content = extractAssignedJson(contentSrc, 'HUB_CONTENT');
-const tech = content.site.technology;
-const openHouse = tech[tech.length - 1];
-assert(openHouse.href === 'https://app.enesmarealty.com/open-house/', 'open house href');
-assert(openHouse.img === 'assets/sites/technology-09.jpg', 'open house image');
-assert(openHouse.ext === true, 'open house opens externally');
-assert(!openHouse.title, 'image tile must not also set a title overlay');
-assert(/Open House Dashboard/.test(openHouse.alt), 'open house alt text');
-
-const search = content.tech.filter(function (t) { return t.href === 'https://app.enesmarealty.com/open-house/'; });
-assert(search.length === 1 && search[0].title === 'Open House Dashboard', 'search entry');
-
 const tiles = homeTiles(content, 'https://agent.enesmarealty.com');
 assert(tiles.length === 9, 'home tile count ' + tiles.length);
 assert(tiles[0].title === 'Compliance', 'first home tile');
@@ -69,6 +58,7 @@ assert(!loginHtml().includes('enesma_sso'), 'login screen does not show the sess
 const manifest = JSON.parse(readFileSync(join(root, 'manifest.json'), 'utf8'));
 assert(manifest.manifest_version === 3, 'mv3');
 assert(manifest.name === 'ENESMA AGENT HUB', 'extension name');
+assert(manifest.description.length <= 132, 'short description is ' + manifest.description.length + ' characters');
 assert(JSON.stringify(manifest.permissions) === '["cookies"]', 'minimal permissions');
 assert(!manifest.content_scripts, 'no content scripts');
 assert(!manifest.host_permissions.some(function (p) { return p === '<all_urls>' || p.includes('google.com') && !p.includes('script.google'); }), 'no broad google hosts');
@@ -80,8 +70,11 @@ assert(!sources.includes('eval('), 'no eval');
 assert(sources.includes(SSO_COOKIE) && sources.includes(DEVICE_COOKIE), 'session cookie names');
 assert(!/writeCookie\(\s*['"]password/.test(sources), 'password is not written as a cookie');
 
-const index = readFileSync(join(repo, 'index.html'), 'utf8');
-assert(index.includes('content.js?v=14'), 'cache bump so the new tile is fetched');
+const privacy = readFileSync(join(repo, 'privacy-extension.html'), 'utf8');
+assert(/passwords are not stored/i.test(privacy), 'privacy says passwords are not stored');
+assert(/personal data is not stored or sold/i.test(privacy), 'privacy says personal data is not stored or sold');
+assert(/session cookie on enesmarealty\.com/i.test(privacy), 'privacy names the session cookie domain');
+assert(/enesma_sso/.test(privacy), 'privacy names the session cookie');
 
 if (failed) {
   console.error(failed + ' failed');

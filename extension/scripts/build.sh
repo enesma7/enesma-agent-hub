@@ -16,5 +16,8 @@ zip -r dist/enesma-agent-hub.zip \
   assets \
   fallback \
   -x '*.DS_Store' -x '*/.DS_Store'
+mkdir -p store
+cp dist/enesma-agent-hub.zip store/enesma-agent-hub.zip
 echo "Wrote dist/enesma-agent-hub.zip"
+echo "Copied store/enesma-agent-hub.zip"
 unzip -l dist/enesma-agent-hub.zip
