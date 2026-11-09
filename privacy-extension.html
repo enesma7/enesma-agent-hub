@@ -7,9 +7,17 @@
 <link rel="icon" type="image/png" href="favicon-32.png">
 <style>
   body { margin: 0; background: #000007; color: #FBFBFB; font: 16px/1.5 Inter, "Helvetica Neue", Helvetica, Arial, sans-serif; }
-  header { display: flex; align-items: center; gap: 14px; padding: 16px 28px; }
-  header img { height: 42px; width: auto; }
-  header span { font-size: 13px; letter-spacing: .16em; border-left: 1px solid rgba(251,251,251,.28); padding-left: 14px; }
+  header { padding: 18px 28px 16px; }
+  .brand { display: flex; flex-direction: column; align-items: center; width: max-content; }
+  .brand img { height: 42px; width: auto; }
+  .brand span {
+    margin-top: 6px;
+    font-size: 12px;
+    letter-spacing: .22em;
+    font-weight: 500;
+    line-height: 1;
+    margin-right: -.22em;
+  }
   main { width: min(680px, calc(100% - 40px)); margin: 28px auto 72px; background: #FBFBFB; color: #000007; border-radius: 14px; padding: 32px 28px; }
   h1 { font-size: 28px; font-weight: 500; margin: 0 0 12px; }
   h2 { font-size: 18px; font-weight: 500; margin: 28px 0 8px; }
@@ -19,8 +27,10 @@
 </head>
 <body>
 <header>
-  <img src="assets/logo-white.png" alt="ENESMA Realty">
-  <span>AGENT HUB</span>
+  <div class="brand">
+    <img src="extension/assets/logo-white.png" alt="ENESMA Realty">
+    <span>AGENT HUB</span>
+  </div>
 </header>
 <main>
   <h1>ENESMA AGENT HUB for Chrome</h1>

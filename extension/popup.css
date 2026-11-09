@@ -29,15 +29,23 @@ img { display: block; max-width: 100%; }
   top: 0;
   z-index: 2;
 }
-.top img { height: 28px; width: auto; max-width: none; flex: 0 0 auto; }
-.hub-label {
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex: 0 0 auto;
-  font-size: 11px;
-  letter-spacing: .16em;
+}
+.brand img { height: 22px; width: auto; max-width: none; }
+.hub-label {
+  margin-top: 3px;
+  font-size: 9px;
+  letter-spacing: .22em;
   font-weight: 500;
-  border-left: 1px solid rgba(251, 251, 251, .28);
-  padding-left: 10px;
-  line-height: 1.1;
+  line-height: 1;
+  /* Letter-spacing adds space after the last glyph. The matching
+     negative margin puts the ink, not the spacing box, on the wordmark center. */
+  margin-right: -.22em;
+  color: var(--white);
 }
 .who { margin-left: auto; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; flex: 1 1 auto; }
 .user-chip {
