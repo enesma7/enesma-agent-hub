@@ -946,11 +946,11 @@
     if (src) return '<img src="' + h(src) + '" alt="' + h(alt || ('Photo of ' + agent.name)) + '">';
     return '<div class="roster-ph" role="img" aria-label="No photo of ' + h(agent.name) + '"><span>' + h(rosterInitials(agent.name)) + '</span></div>';
   }
-  function rosterContact(agent) {
+  function rosterContact(agent, includeWebsite) {
     var bits = [];
     if (agent.phone) bits.push('<a href="tel:' + h(String(agent.phone).replace(/[^\d+]/g, '')) + '">' + h(agent.phone) + '</a>');
     if (agent.email) bits.push('<a href="mailto:' + h(agent.email) + '">' + h(agent.email) + '</a>');
-    if (agent.website) bits.push('<a href="' + h(agent.website) + '" target="_blank" rel="noopener">' + h(agent.websiteLabel || agent.website) + '</a>');
+    if (includeWebsite && agent.website) bits.push('<a href="' + h(agent.website) + '" target="_blank" rel="noopener">' + h(agent.websiteLabel || agent.website) + '</a>');
     return bits.length ? '<p class="roster-contact">' + bits.join('<br>') + '</p>' : '';
   }
   function rosterBio(agent) {
@@ -959,16 +959,13 @@
     return '<p>' + h(agent.bio) + '</p>';
   }
   function rosterCard(agent) {
-    var langs = (agent.languages || []).join(' · ');
     return '<article class="roster-card">' +
       '<a class="roster-main" href="#/agents/' + h(agent.slug) + '">' +
       rosterPhoto(agent) +
       '<h3>' + h(agent.name) + '</h3>' +
       '<p class="roster-title">' + h(agent.title || 'Agent') + (agent.dre ? ' · DRE# ' + h(agent.dre) : '') + '</p>' +
-      (langs ? '<p class="roster-langs">' + h(langs) + '</p>' : '') +
       '</a>' +
-      rosterContact(agent) +
-      socialRow(agent.links) +
+      rosterContact(agent, false) +
       '</article>';
   }
   function pageAgents() {
@@ -1199,7 +1196,7 @@
         '<div class="agent-body"><div class="agent-info"><h2>' + h(agent.name) + '</h2>' +
         '<p class="meta">' + h(agent.title || 'Agent') + (agent.dre ? ' · DRE# ' + h(agent.dre) : '') + '</p>' +
         (agent.languages && agent.languages.length ? '<p class="roster-langs">' + h(agent.languages.join(' · ')) + '</p>' : '') +
-        rosterContact(agent) + '</div>' +
+        rosterContact(agent, true) + '</div>' +
         socialRow(agent.links) +
         '<div class="agent-bio">' + rosterBio(agent) + '</div></div></div>';
       var btn = qs('#photoBtn', root);
