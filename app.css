@@ -518,7 +518,7 @@ body > .hero-park {
 .roster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
 .roster-card {
   background: #fff; border: 1px solid #ececec; border-radius: var(--radius); padding: 16px;
-  min-width: 0; overflow-wrap: anywhere;
+  min-width: 0; overflow-wrap: anywhere; text-align: center;
 }
 .roster-main { display: block; text-decoration: none; color: inherit; }
 .roster-card img, .roster-card .roster-ph {
@@ -533,7 +533,7 @@ body > .hero-park {
 .roster-card h3 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
 .roster-title, .roster-langs, .roster-contact { margin: 0 0 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
 .roster-contact a { color: inherit; }
-.roster-card .socials { justify-content: flex-start; gap: 12px; margin: 8px 0 0; }
+.roster-card .socials { justify-content: center; gap: 12px; margin: 8px 0 0; }
 .roster-card .socials svg { width: 22px; height: 22px; }
 .roster-status { text-align: center; padding: 12px 0 8px; }
 .roster-status h2 { font-size: 28px; font-weight: 500; margin: 0 0 8px; }
