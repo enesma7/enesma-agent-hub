@@ -657,15 +657,15 @@ window.HUB_CONTENT = {
       { "img": "assets/sites/tpl-decks.jpg", "href": "https://www.canva.com/folder/FAHXRHXspD4", "ext": true, "alt": "Presentations", "title": "Presentations" }
     ],
     "technology": [
+      { "img": "assets/sites/technology-08.jpg", "href": "https://app.enesmarealty.com/esign/", "ext": true, "alt": "E-Sign. Send, sign and store, all in one place.", "title": "E-Sign", "sub": "Send, Sign and Store" },
+      { "img": "assets/sites/technology-09.jpg", "href": "https://app.enesmarealty.com/openhouse/", "ext": true, "alt": "Open House Dashboard. Guest sign-in sheets and QR codes" },
       { "img": "assets/sites/technology-01.jpg", "href": "https://go.crmls.org", "ext": true, "alt": "CRMLS. MLS search, listings & Matrix" },
       { "img": "assets/sites/technology-02.jpg", "href": "https://www.car.org/transactions/rst?src=homepage", "ext": true, "alt": "zipForm. C.A.R. transaction forms" },
       { "img": "assets/sites/technology-03.jpg", "href": "https://www.canva.com", "ext": true, "alt": "Canva. Flyers, social & presentations" },
       { "img": "assets/sites/technology-04.jpg", "href": "https://www.capcut.com/", "ext": true, "alt": "CapCut" },
       { "img": "assets/sites/technology-05.jpg", "href": "https://cloudcma.com/login", "ext": true, "alt": "Cloud CMA. CMAs, presentations and flyers" },
       { "img": "assets/sites/technology-06.jpg", "href": "https://x.ai/pricing", "ext": true, "alt": "Grok Bot. AI organization" },
-      { "img": "assets/sites/technology-07.jpg", "href": "https://chatgpt.com", "ext": true, "alt": "ChatGPT by OpenAI. Listing copy, emails & scripts" },
-      { "img": "assets/sites/technology-08.jpg", "href": "https://app.enesmarealty.com/esign/", "ext": true, "alt": "E-Sign. Send, sign and store, all in one place.", "foot": "Send, sign and store — all in one place.", "steps": ["Upload", "Place", "Sign", "Store"] },
-      { "img": "assets/sites/technology-09.jpg", "href": "https://app.enesmarealty.com/openhouse/", "ext": true, "alt": "Open House Dashboard. Guest sign-in sheets and QR codes" }
+      { "img": "assets/sites/technology-07.jpg", "href": "https://chatgpt.com", "ext": true, "alt": "ChatGPT by OpenAI. Listing copy, emails & scripts" }
     ],
     "listing": {
       "img": "assets/sites/listings-01.jpg",
