@@ -938,8 +938,12 @@
     var last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
     return (first + last).toUpperCase();
   }
+  function rosterPhotoSrc(agent) {
+    return agent.photoUrl || agent.fallbackPhoto || '';
+  }
   function rosterPhoto(agent, alt) {
-    if (agent.photoUrl) return '<img src="' + h(agent.photoUrl) + '" alt="' + h(alt || ('Photo of ' + agent.name)) + '">';
+    var src = rosterPhotoSrc(agent);
+    if (src) return '<img src="' + h(src) + '" alt="' + h(alt || ('Photo of ' + agent.name)) + '">';
     return '<div class="roster-ph" role="img" aria-label="No photo of ' + h(agent.name) + '"><span>' + h(rosterInitials(agent.name)) + '</span></div>';
   }
   function rosterContact(agent) {
@@ -1183,7 +1187,7 @@
       }
       if (hero) hero.textContent = 'Agents';
       document.title = agent.name + ' · ENESMA Realty';
-      var photoBtn = agent.photoUrl ? 'Change Photo' : 'Upload Photo';
+      var photoBtn = rosterPhotoSrc(agent) ? 'Change Photo' : 'Upload Photo';
       var admin = HubRoster.isAdmin(S.user)
         ? '<div class="photo-admin"><button class="btn" id="photoBtn" type="button">' + photoBtn + '</button>' +
           '<input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>' +

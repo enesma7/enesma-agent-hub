@@ -1,6 +1,7 @@
 /* Loads the live public roster from Transaction Center (publicAgents).
-   Published Hub profiles fill in bio, languages, and links when the
-   roster row does not have them yet. They never add or remove an agent. */
+   Published Hub profiles fill in bio, languages, links, and the
+   headshot already in git when the roster row has no photo URL.
+   They never add or remove an agent. */
 (function () {
   var Pub = window.HubRosterPublic;
   var state = { status: 'idle', agents: [], error: '', updatedAt: '' };
@@ -43,6 +44,10 @@
     if (!agent.website && profile.web) agent.website = profile.web;
     if (!agent.websiteLabel && profile.webLabel) agent.websiteLabel = profile.webLabel;
     if (!agent.dre && profile.dre) agent.dre = profile.dre;
+    if (!agent.photoUrl) {
+      var local = Pub.localHeadshot(profile.img);
+      if (local) agent.fallbackPhoto = local;
+    }
     agent.links = mergeLinks(agent.links, profile.social);
     if (profile.bioHtml) agent.bioHtml = profile.bioHtml;
     return agent;

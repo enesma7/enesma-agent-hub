@@ -65,6 +65,11 @@ agents.forEach(function (agent) {
 
 assert.strictEqual(roster.safePhoto('https://evil.example/photo.jpg'), '');
 assert.strictEqual(roster.safePhoto('http://drive.google.com/thumbnail?id=abc'), '');
+assert.strictEqual(roster.localHeadshot('assets/agents/enrique.jpg'), 'assets/agents/enrique.jpg');
+assert.strictEqual(roster.localHeadshot('assets/agents/lilia.jpg'), 'assets/agents/lilia.jpg');
+assert.strictEqual(roster.localHeadshot('javascript:alert(1)'), '');
+assert.strictEqual(roster.localHeadshot('assets/logo-white.png'), '');
+assert.strictEqual(roster.localHeadshot('assets/agents/../logo.png'), '');
 
 const gs = fs.readFileSync(path.join(__dirname, '../apps-script/RosterPublic.gs'), 'utf8');
 ['publicAgents', 'saveAgentPhoto', 'EB_Agents', 'ROSTER_PRIVATE', 'photoUrl', 'photoFileId', 'ANYONE_WITH_LINK'].forEach(function (part) {

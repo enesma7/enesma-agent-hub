@@ -61,6 +61,11 @@
     if (!u || PRIVATE.test(u)) return '';
     return PUBLIC_PHOTO.test(u) ? u : '';
   }
+  function localHeadshot(src) {
+    var s = text(src);
+    if (!s || s.indexOf('..') >= 0) return '';
+    return /^assets\/agents\/[A-Za-z0-9._-]+$/.test(s) ? s : '';
+  }
   function websiteLabel(url, label) {
     var given = text(label);
     if (given) return given;
@@ -149,6 +154,7 @@
     publicAgent: publicAgent,
     languagesOf: languagesOf,
     safePhoto: safePhoto,
+    localHeadshot: localHeadshot,
     slugify: slugify,
     hasPrivateKey: hasPrivateKey
   };
