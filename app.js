@@ -100,7 +100,6 @@
   function sectionHead(title, sub) {
     return '<div class="section-head"><h2>' + h(title) + '</h2><div class="gold-rule"></div>' + (sub ? '<p>' + h(sub) + '</p>' : '') + '</div>';
   }
-  var CALC_SITE = 'https://calculators.enesmarealty.com/';
   function agentMenu() {
     var list = (window.HubRoster && HubRoster.agents()) || [];
     return '<a href="#/agents">All Agents</a>' + list.map(function (a) {
@@ -134,15 +133,15 @@
         '<a href="#/technology" class="' + on('/technology') + '">Technology</a>' +
         '<a href="#/listings" class="' + on('/listings') + '">Listings</a>' +
         '<a href="#/training" class="' + on('/training') + '">Training</a>' +
-        '<div class="drop">' +
-          '<a class="link" href="https://calculators.enesmarealty.com/">Calculators</a>' +
+        '<div class="drop' + (on('/calculators') ? ' on' : '') + '">' +
+          '<a class="link' + on('/calculators') + '" href="#/calculators">Calculators</a>' +
           '<button class="caret-btn" type="button" aria-label="Calculators Menu" aria-expanded="false"><i class="caret"></i></button>' +
           '<div class="drop-menu">' +
-            '<a href="https://calculators.enesmarealty.com/">All Calculators</a>' +
-            '<a href="https://calculators.enesmarealty.com/flip-calculator.html">Flip Calculator</a>' +
-            '<a href="https://calculators.enesmarealty.com/net-sheet.html">Net Sheet</a>' +
-            '<a href="https://calculators.enesmarealty.com/mortgage-calculator.html">Mortgage Calculator</a>' +
-            '<a href="https://calculators.enesmarealty.com/cap-rate-calculator.html">Cap Rate Calculator</a>' +
+            '<a href="#/calculators">All Calculators</a>' +
+            '<a href="#/calculators/flip-calculator">Flip Calculator</a>' +
+            '<a href="#/calculators/net-sheet">Net Sheet</a>' +
+            '<a href="#/calculators/mortgage-calculator">Mortgage Calculator</a>' +
+            '<a href="#/calculators/cap-rate-calculator">Cap Rate Calculator</a>' +
           '</div>' +
         '</div>' +
         '<a href="#/refer" class="' + on('/refer') + '">Refer</a>' +
@@ -225,11 +224,11 @@
       { t: 'Office Listings', s: 'Current ENESMA listings', h: '#/listings' },
       { t: 'Office Hubs', s: 'Reserve a desk or the conference room', h: '#/office-hubs' },
       { t: 'Training Library', s: 'Recorded sessions and coaching', h: '#/training' },
-      { t: 'Calculators', s: 'Flip, net sheet, mortgage and cap rate', h: CALC_SITE },
-      { t: 'Flip Calculator', s: 'Fix-and-flip profit estimate', h: CALC_SITE + 'flip-calculator.html' },
-      { t: 'Net Sheet', s: 'Seller net proceeds estimate', h: CALC_SITE + 'net-sheet.html' },
-      { t: 'Mortgage Calculator', s: 'Monthly payment estimate', h: CALC_SITE + 'mortgage-calculator.html' },
-      { t: 'Cap Rate Calculator', s: 'NOI and capitalization rate', h: CALC_SITE + 'cap-rate-calculator.html' },
+      { t: 'Calculators', s: 'Flip, net sheet, mortgage and cap rate', h: '#/calculators' },
+      { t: 'Flip Calculator', s: 'Fix-and-flip profit estimate', h: '#/calculators/flip-calculator' },
+      { t: 'Net Sheet', s: 'Seller net proceeds estimate', h: '#/calculators/net-sheet' },
+      { t: 'Mortgage Calculator', s: 'Monthly payment estimate', h: '#/calculators/mortgage-calculator' },
+      { t: 'Cap Rate Calculator', s: 'NOI and capitalization rate', h: '#/calculators/cap-rate-calculator' },
       { t: 'Refer an Agent', s: 'Referral addendum and incentives', h: '#/refer' },
       { t: 'Agents', s: 'ENESMA Realty agents', h: '#/agents' },
       { t: 'Preferred Partners', s: 'Escrow, lenders, inspectors and more', h: '#/preferred-partners' }

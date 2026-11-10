@@ -37,7 +37,7 @@ OUT = Path(os.environ.get("CA_RATES_OUT", ROOT / "data" / "ca-rates.json"))
 PARTNER = os.environ.get("ZILLOW_PARTNER_ID", "RD-CZMBMCZ")
 ZILLOW = "https://mortgageapi.zillow.com/getRates"
 PMMS = "https://www.freddiemac.com/pmms/docs/PMMS_history.csv"
-UA = "ENESMA-rates/1.0 (+https://calculators.enesmarealty.com)"
+UA = "ENESMA-rates/1.0 (+https://agent.enesmarealty.com)"
 
 COHORTS = {
     "conventional": {
