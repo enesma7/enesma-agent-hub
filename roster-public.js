@@ -7,7 +7,7 @@
   else root.HubRosterPublic = api;
 })(typeof self !== 'undefined' ? self : this, function () {
   var PRIVATE = /address|mailing|mailto|ssn|tin|tax|ein|dob|birth|bank|routing|account|password|secret|split|capamount|capnote|w9|homezip|homephone/i;
-  var PUBLIC_PHOTO = /^https:\/\/([a-z0-9-]+\.)*(googleusercontent\.com|drive\.google\.com|docs\.google\.com)\//i;
+  var PUBLIC_PHOTO = /^https:\/\/(?:([a-z0-9-]+\.)*(?:googleusercontent\.com|drive\.google\.com|docs\.google\.com)|www\.enesmarealty\.com|agent\.enesmarealty\.com)\//i;
 
   function text(v) {
     return String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
