@@ -537,14 +537,33 @@ body > .hero-park {
 .roster-card .socials svg { width: 22px; height: 22px; }
 .roster-status { text-align: center; padding: 12px 0 8px; }
 .roster-status h2 { font-size: 28px; font-weight: 500; margin: 0 0 8px; }
-.roster-back { margin: 0 0 18px; }
+.roster-back { margin: 0 auto 18px; width: 100%; text-align: center; }
 .roster-back a { color: inherit; }
-.photo-admin { text-align: center; margin: 0 0 28px; }
+.photo-admin { text-align: center; margin: 0 auto 28px; width: 100%; }
+.agent-body,
+.agent-info { width: 100%; text-align: center; }
+.agent-info { margin: 0 0 40px; }
+.agent .agent-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 18px;
+  width: 100%;
+  margin: 0;
+  text-align: center;
+}
+.agent .socials {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
 .photo-hint, .photo-msg { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
 .photo-msg { min-height: 1.2em; }
 .agent .roster-ph { display: grid; }
-.agent-body { text-align: center; width: 100%; }
-.agent-info { margin: 0 0 40px; }
 .agent h2 { margin: 0 0 8px; font-size: 28px; font-weight: 500; }
 .agent .meta { color: var(--muted); margin: 0 0 12px; }
 .agent-contact { margin: 0; line-height: 1.65; }

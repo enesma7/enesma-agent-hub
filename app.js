@@ -951,7 +951,9 @@
     if (agent.phone) bits.push('<a href="tel:' + h(String(agent.phone).replace(/[^\d+]/g, '')) + '">' + h(agent.phone) + '</a>');
     if (agent.email) bits.push('<a href="mailto:' + h(agent.email) + '">' + h(agent.email) + '</a>');
     if (includeWebsite && agent.website) bits.push('<a href="' + h(agent.website) + '" target="_blank" rel="noopener">' + h(agent.websiteLabel || agent.website) + '</a>');
-    return bits.length ? '<p class="roster-contact">' + bits.join('<br>') + '</p>' : '';
+    if (!bits.length) return '';
+    var cls = includeWebsite ? 'roster-contact agent-contact-row' : 'roster-contact';
+    return '<p class="' + cls + '">' + bits.join(includeWebsite ? '' : '<br>') + '</p>';
   }
   function rosterBio(agent) {
     if (agent.bioHtml) return agent.bioHtml;
