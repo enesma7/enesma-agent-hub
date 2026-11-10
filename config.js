@@ -7,5 +7,6 @@ window.HUB = {
   CDA: 'https://app.enesmarealty.com/forms/cda.html',
   INVOICE: 'https://app.enesmarealty.com/forms/invoice.html',
   ADD_IOS: 'https://apps.enesmarealty.com/?p=ios',
-  ADD_ANDROID: 'https://apps.enesmarealty.com/?p=android'
+  ADD_ANDROID: 'https://apps.enesmarealty.com/?p=android',
+  ADD_EXTENSION: 'https://chromewebstore.google.com/detail/pajlenkhhijdmglohdjpboeogddobmil'
 };

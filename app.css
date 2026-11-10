@@ -317,7 +317,7 @@ body > .hero-park {
 .event p { margin: 0; font-size: 13px; font-size: clamp(12px, 2.35cqi, 16px); line-height: 1.3; color: rgba(251,251,251,.82); }
 
 .pills {
-  display: flex; justify-content: center; align-items: center;
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
   gap: clamp(12px, 2.4vw, 28px);
   width: fit-content; max-width: calc(100% - 32px);
   margin: 8px auto 48px; padding: 0;
@@ -328,6 +328,14 @@ body > .hero-park {
   box-shadow: none;
 }
 .pill img { width: 100%; height: auto; display: block; }
+.pill-ext {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  aspect-ratio: 1169 / 229; box-sizing: border-box; padding: 0 14px;
+  background: #EAD59E; color: #000007; text-decoration: none;
+  font-weight: 800; font-size: 15px; line-height: 1; letter-spacing: -.02em;
+  white-space: nowrap;
+}
+.pill-ext svg { width: 22px; height: 22px; flex: none; display: block; }
 .pill:hover { filter: brightness(1.04); }
 .pill:active { filter: brightness(.97); }
 .pill:focus-visible { outline: 2px solid var(--black); outline-offset: 4px; }
@@ -666,6 +674,8 @@ body > .hero-park {
   .hero .lockup { width: min(340px, 84vw); padding: 14px 12px 16px; }
   .pills { gap: 12px; margin-bottom: 36px; max-width: calc(100% - 32px); }
   .pill { width: min(168px, 42vw); }
+  .pill-ext { font-size: 13px; gap: 6px; padding: 0 10px; }
+  .pill-ext svg { width: 18px; height: 18px; }
 }
 @media (max-width: 640px) {
   .foot { grid-template-columns: 1fr 1fr; gap: 36px 24px; }

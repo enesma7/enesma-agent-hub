@@ -1,6 +1,6 @@
 # Calculators home-screen icon
 
-These files are for **enesma7/enesma-calculators** (`https://calculators.enesmarealty.com`). This workspace can read that repo and cannot push to it (`push: false`), so they are not on the calculators site yet.
+These files are for **enesma7/enesma-calculators**. This workspace can read that repo and cannot push to it (`push: false`), so they are not on the calculators site yet.
 
 The calculators site currently has no icon tags in its pages. iPhone still picks up `/apple-touch-icon.png` by convention, and that file is the same gold E on black as the Agent Hub. Replacing it, and adding the tags below, gives Calculators its own calculator mark and the home-screen name **Calculators**.
 
