@@ -100,6 +100,13 @@
   function sectionHead(title, sub) {
     return '<div class="section-head"><h2>' + h(title) + '</h2><div class="gold-rule"></div>' + (sub ? '<p>' + h(sub) + '</p>' : '') + '</div>';
   }
+  var CALC_SITE = 'https://calculators.enesmarealty.com/';
+  function agentMenu() {
+    var list = (window.HubRoster && HubRoster.agents()) || [];
+    return '<a href="#/agents">All Agents</a>' + list.map(function (a) {
+      return '<a href="#/agents/' + h(a.slug) + '">' + h(a.name) + '</a>';
+    }).join('');
+  }
   function headerHtml() {
     var p = path();
     function on(prefix) { return p === prefix || (prefix !== '/' && p.indexOf(prefix) === 0) ? ' on' : ''; }
@@ -108,35 +115,41 @@
       '<button class="menu-btn icon-btn" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>' +
       '<nav class="nav" id="nav">' +
         '<a href="#/" class="' + on('/') + (p !== '/' ? '' : ' on') + '">Home</a>' +
-        '<div class="drop">' +
-          '<button class="link' + on('/compliance') + '" type="button">Compliance <i class="caret"></i></button>' +
+        '<div class="drop' + (on('/compliance') ? ' on' : '') + '">' +
+          '<a class="link' + on('/compliance') + '" href="#/compliance">Compliance</a>' +
+          '<button class="caret-btn" type="button" aria-label="Compliance Menu" aria-expanded="false"><i class="caret"></i></button>' +
           '<div class="drop-menu">' +
+            '<a href="#/compliance">Compliance</a>' +
             '<a href="#/compliance/transaction-checklists">Transaction Checklists</a>' +
             '<a href="#/compliance/c-a-r-legal-hotline">C.A.R. Legal Hotline</a>' +
             '<a href="#/compliance/office-documents">Office Documents</a>' +
             '<a href="#/compliance/office-policies">Office Policies</a>' +
           '</div>' +
         '</div>' +
-        '<div class="drop">' +
-          '<button class="link' + on('/marketing-templates') + '" type="button">Marketing <i class="caret"></i></button>' +
+        '<div class="drop' + (on('/marketing-templates') ? ' on' : '') + '">' +
+          '<a class="link' + on('/marketing-templates') + '" href="#/marketing-templates">Marketing</a>' +
+          '<button class="caret-btn" type="button" aria-label="Marketing Menu" aria-expanded="false"><i class="caret"></i></button>' +
           '<div class="drop-menu"><a href="#/marketing-templates">Templates</a><a href="#/marketing-templates/holidays">Holidays</a></div>' +
         '</div>' +
         '<a href="#/technology" class="' + on('/technology') + '">Technology</a>' +
         '<a href="#/listings" class="' + on('/listings') + '">Listings</a>' +
         '<a href="#/training" class="' + on('/training') + '">Training</a>' +
         '<div class="drop">' +
-          '<button class="link' + on('/calculators') + '" type="button">Calculators <i class="caret"></i></button>' +
+          '<a class="link" href="https://calculators.enesmarealty.com/">Calculators</a>' +
+          '<button class="caret-btn" type="button" aria-label="Calculators Menu" aria-expanded="false"><i class="caret"></i></button>' +
           '<div class="drop-menu">' +
-            '<a href="#/calculators/flip-calculator">Flip Calculator</a>' +
-            '<a href="#/calculators/net-sheet">Net Sheet</a>' +
-            '<a href="#/calculators/mortgage-calculator">Mortgage Calculator</a>' +
-            '<a href="#/calculators/cap-rate-calculator">Cap Rate Calculator</a>' +
+            '<a href="https://calculators.enesmarealty.com/">All Calculators</a>' +
+            '<a href="https://calculators.enesmarealty.com/flip-calculator.html">Flip Calculator</a>' +
+            '<a href="https://calculators.enesmarealty.com/net-sheet.html">Net Sheet</a>' +
+            '<a href="https://calculators.enesmarealty.com/mortgage-calculator.html">Mortgage Calculator</a>' +
+            '<a href="https://calculators.enesmarealty.com/cap-rate-calculator.html">Cap Rate Calculator</a>' +
           '</div>' +
         '</div>' +
         '<a href="#/refer" class="' + on('/refer') + '">Refer</a>' +
-        '<div class="drop">' +
-          '<button class="link' + on('/agents') + '" type="button">Agents <i class="caret"></i></button>' +
-          '<div class="drop-menu"><a href="#/agents/enrique-esparza">Enrique Esparza</a><a href="#/agents/lilia-amador">Lilia Amador</a></div>' +
+        '<div class="drop' + (on('/agents') ? ' on' : '') + '">' +
+          '<a class="link' + on('/agents') + '" href="#/agents">Agents</a>' +
+          '<button class="caret-btn" type="button" aria-label="Agents Menu" aria-expanded="false"><i class="caret"></i></button>' +
+          '<div class="drop-menu">' + agentMenu() + '</div>' +
         '</div>' +
         '<div class="nav-tools">' +
           '<button class="icon-btn" id="searchBtn" aria-label="Search">' +
@@ -212,13 +225,18 @@
       { t: 'Office Listings', s: 'Current ENESMA listings', h: '#/listings' },
       { t: 'Office Hubs', s: 'Reserve a desk or the conference room', h: '#/office-hubs' },
       { t: 'Training Library', s: 'Recorded sessions and coaching', h: '#/training' },
-      { t: 'Calculators', s: 'Flip, net sheet, mortgage and cap rate', h: '#/calculators' },
-      { t: 'Cap Rate Calculator', s: 'NOI and capitalization rate', h: '#/calculators/cap-rate-calculator' },
+      { t: 'Calculators', s: 'Flip, net sheet, mortgage and cap rate', h: CALC_SITE },
+      { t: 'Flip Calculator', s: 'Fix-and-flip profit estimate', h: CALC_SITE + 'flip-calculator.html' },
+      { t: 'Net Sheet', s: 'Seller net proceeds estimate', h: CALC_SITE + 'net-sheet.html' },
+      { t: 'Mortgage Calculator', s: 'Monthly payment estimate', h: CALC_SITE + 'mortgage-calculator.html' },
+      { t: 'Cap Rate Calculator', s: 'NOI and capitalization rate', h: CALC_SITE + 'cap-rate-calculator.html' },
       { t: 'Refer an Agent', s: 'Referral addendum and incentives', h: '#/refer' },
-      { t: 'Agents', s: 'ENESMA agents', h: '#/agents' },
+      { t: 'Agents', s: 'ENESMA Realty agents', h: '#/agents' },
       { t: 'Preferred Partners', s: 'Escrow, lenders, inspectors and more', h: '#/preferred-partners' }
     ];
-    (C.agents || []).forEach(function (a) { items.push({ t: a.name, s: a.role + ' · DRE# ' + a.dre, h: '#/agents/' + a.slug }); });
+    ((window.HubRoster && HubRoster.agents()) || []).forEach(function (a) {
+      items.push({ t: a.name, s: a.title + (a.dre ? ' · DRE# ' + a.dre : ''), h: '#/agents/' + a.slug });
+    });
     (C.partners || []).forEach(function (p) { items.push({ t: p.title, s: p.sub, h: p.href }); });
     (C.tech || []).forEach(function (p) { items.push({ t: p.title, s: p.sub, h: p.href }); });
     (C.checklists || []).forEach(function (p) { items.push({ t: p.title, s: 'Transaction checklist', h: '#/compliance/transaction-checklists' }); });
@@ -914,23 +932,48 @@
       '<p class="refer-cta"><a class="refer-btn" href="https://app.enesmarealty.com/leadforms/refer.html" target="_blank" rel="noopener">Refer an Agent</a></p>' +
       '<p class="note">' + h(R.legal) + '</p></div></section>';
   }
-  function pageAgents() {
-    var cards = (C.agents || []).map(function (a) {
-      return '<a class="card-plain" href="#/agents/' + h(a.slug) + '"><img src="' + h(a.img) + '" alt="" style="width:100%;height:220px;object-fit:cover;border-radius:6px;margin-bottom:12px"><h3>' + h(a.name) + '</h3><p>' + h(a.role) + ' · DRE# ' + h(a.dre) + '</p></a>';
-    }).join('');
-    return pageHero('REAL ESTATE AGENTS', 'assets/banners/agents.jpg') +
-      '<section class="section"><div class="wrap"><div class="grid-2">' + cards + '</div></div></section>';
+  function rosterInitials(name) {
+    var parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+    var first = (parts[0] || 'A').charAt(0);
+    var last = parts.length > 1 ? parts[parts.length - 1].charAt(0) : '';
+    return (first + last).toUpperCase();
   }
-  function pageAgent(a) {
-    return pageHero(a.name.toUpperCase(), 'assets/banners/agents.jpg') +
-      '<section class="section"><div class="wrap"><div class="agent">' +
-      '<img src="' + h(a.img) + '" alt="' + h(a.name) + '"><div class="agent-body">' +
-      '<div class="agent-info"><h2>' + h(a.name) + '</h2><p class="meta">' + h(a.role) + ' · DRE# ' + h(a.dre) + '</p>' +
-      '<p class="agent-contact"><a href="tel:' + h(a.phone.replace(/[^\d+]/g, '')) + '">' + h(a.phone) + '</a><br>' +
-      '<a href="mailto:' + h(a.email) + '">' + h(a.email) + '</a><br>' +
-      '<a href="' + h(a.web) + '" target="_blank" rel="noopener">' + h(a.webLabel) + '</a></p></div>' +
-      socialRow(a.social) +
-      '<div class="agent-bio">' + (a.bioHtml || '') + '</div></div></div></section>';
+  function rosterPhoto(agent, alt) {
+    if (agent.photoUrl) return '<img src="' + h(agent.photoUrl) + '" alt="' + h(alt || ('Photo of ' + agent.name)) + '">';
+    return '<div class="roster-ph" role="img" aria-label="No photo of ' + h(agent.name) + '"><span>' + h(rosterInitials(agent.name)) + '</span></div>';
+  }
+  function rosterContact(agent) {
+    var bits = [];
+    if (agent.phone) bits.push('<a href="tel:' + h(String(agent.phone).replace(/[^\d+]/g, '')) + '">' + h(agent.phone) + '</a>');
+    if (agent.email) bits.push('<a href="mailto:' + h(agent.email) + '">' + h(agent.email) + '</a>');
+    if (agent.website) bits.push('<a href="' + h(agent.website) + '" target="_blank" rel="noopener">' + h(agent.websiteLabel || agent.website) + '</a>');
+    return bits.length ? '<p class="roster-contact">' + bits.join('<br>') + '</p>' : '';
+  }
+  function rosterBio(agent) {
+    if (agent.bioHtml) return agent.bioHtml;
+    if (!agent.bio) return '';
+    return '<p>' + h(agent.bio) + '</p>';
+  }
+  function rosterCard(agent) {
+    var langs = (agent.languages || []).join(' · ');
+    return '<article class="roster-card">' +
+      '<a class="roster-main" href="#/agents/' + h(agent.slug) + '">' +
+      rosterPhoto(agent) +
+      '<h3>' + h(agent.name) + '</h3>' +
+      '<p class="roster-title">' + h(agent.title || 'Agent') + (agent.dre ? ' · DRE# ' + h(agent.dre) : '') + '</p>' +
+      (langs ? '<p class="roster-langs">' + h(langs) + '</p>' : '') +
+      '</a>' +
+      rosterContact(agent) +
+      socialRow(agent.links) +
+      '</article>';
+  }
+  function pageAgents() {
+    return pageHero('Agents', 'assets/banners/agents.jpg') +
+      '<section class="section"><div class="wrap roster-mount" id="rosterMount" data-view="list"></div></section>';
+  }
+  function pageAgentShell(slug) {
+    return pageHero('Agent', 'assets/banners/agents.jpg') +
+      '<section class="section"><div class="wrap roster-mount" id="rosterMount" data-view="agent" data-slug="' + h(slug) + '"></div></section>';
   }
   function pagePartners() {
     return pageHero('PREFERRED PARTNERS', 'assets/banners/partners-hero.jpg') +
@@ -963,11 +1006,7 @@
     if (C.calcs && C.calcs[p]) return pageCalcEmbed(C.calcs[p]);
     if (p === '/refer') return pageRefer();
     if (p === '/agents') return pageAgents();
-    if (p.indexOf('/agents/') === 0) {
-      var slug = p.slice('/agents/'.length);
-      var a = (C.agents || []).filter(function (x) { return x.slug === slug; })[0];
-      return a ? pageAgent(a) : page404();
-    }
+    if (p.indexOf('/agents/') === 0) return pageAgentShell(p.slice('/agents/'.length));
     if (p === '/preferred-partners') return pagePartners();
     return page404();
   }
@@ -992,12 +1031,16 @@
       '/calculators/mortgage-calculator': 'Mortgage Calculator',
       '/calculators/cap-rate-calculator': 'Cap Rate Calculator',
       '/refer': 'REFER AN AGENT',
-      '/agents': 'REAL ESTATE AGENTS',
-      '/agents/enrique-esparza': 'Enrique Esparza',
-      '/agents/lilia-amador': 'Lilia Amador',
+      '/agents': 'Agents',
       '/preferred-partners': 'PREFERRED PARTNERS'
     };
-    return map[path()] || 'AGENT HUB';
+    var current = path();
+    if (current.indexOf('/agents/') === 0 && window.HubRoster) {
+      var person = HubRoster.bySlug(current.slice('/agents/'.length));
+      if (person) return person.name;
+      return 'Agent';
+    }
+    return map[current] || 'AGENT HUB';
   }
 
   function loginShell(inner) {
@@ -1120,17 +1163,128 @@
     syncHomeScreen();
   }
 
+  function bindRoster() {
+    var root = qs('#rosterMount');
+    if (!root || !window.HubRoster) return;
+    var view = root.getAttribute('data-view');
+    var slug = root.getAttribute('data-slug') || '';
+    function showLoading() {
+      root.innerHTML = '<div class="boot"><span class="spin"></span>Loading Agents…</div>';
+    }
+    function showError() {
+      root.innerHTML = '<div class="roster-status"><h2>Roster Unavailable</h2><p>' + h(HubRoster.state.error || 'The agent roster could not be loaded.') + '</p></div>';
+    }
+    function paintProfile(agent) {
+      var hero = qs('.page-hero h1');
+      if (!agent) {
+        if (hero) hero.textContent = 'Agent';
+        root.innerHTML = '<div class="roster-status"><h2>Agent Not Found</h2><p><a href="#/agents">All Agents</a></p></div>';
+        return;
+      }
+      if (hero) hero.textContent = 'Agents';
+      document.title = agent.name + ' · ENESMA Realty';
+      var photoBtn = agent.photoUrl ? 'Change Photo' : 'Upload Photo';
+      var admin = HubRoster.isAdmin(S.user)
+        ? '<div class="photo-admin"><button class="btn" id="photoBtn" type="button">' + photoBtn + '</button>' +
+          '<input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>' +
+          '<p class="photo-hint">Use a photo with a white background.</p>' +
+          '<p class="photo-msg" id="photoMsg" role="status"></p></div>'
+        : '';
+      root.innerHTML = '<p class="roster-back"><a href="#/agents">All Agents</a></p><div class="agent">' +
+        rosterPhoto(agent) + admin +
+        '<div class="agent-body"><div class="agent-info"><h2>' + h(agent.name) + '</h2>' +
+        '<p class="meta">' + h(agent.title || 'Agent') + (agent.dre ? ' · DRE# ' + h(agent.dre) : '') + '</p>' +
+        (agent.languages && agent.languages.length ? '<p class="roster-langs">' + h(agent.languages.join(' · ')) + '</p>' : '') +
+        rosterContact(agent) + '</div>' +
+        socialRow(agent.links) +
+        '<div class="agent-bio">' + rosterBio(agent) + '</div></div></div>';
+      var btn = qs('#photoBtn', root);
+      var file = qs('#photoFile', root);
+      if (!btn || !file) return;
+      btn.onclick = function () { file.click(); };
+      file.onchange = function () {
+        var chosen = file.files && file.files[0];
+        if (!chosen) return;
+        var msg = qs('#photoMsg', root);
+        btn.disabled = true;
+        if (msg) msg.textContent = 'Uploading Photo…';
+        HubRoster.savePhoto(agent.id, chosen).then(function () {
+          paintProfile(HubRoster.bySlug(agent.slug) || agent);
+        }).catch(function (err) {
+          btn.disabled = false;
+          if (msg) msg.textContent = (err && err.message) || 'The photo could not be saved.';
+        });
+      };
+    }
+    function paintList() {
+      var query = ((qs('#agentSearch', root) || {}).value || '').trim().toLowerCase();
+      var lang = (qs('#agentLang', root) || {}).value || '';
+      var matched = HubRoster.agents().filter(function (agent) {
+        if (query && agent.name.toLowerCase().indexOf(query) < 0) return false;
+        if (lang && (agent.languages || []).indexOf(lang) < 0) return false;
+        return true;
+      });
+      var grid = qs('#rosterGrid', root);
+      if (!grid) return;
+      grid.innerHTML = matched.length
+        ? '<div class="roster-grid">' + matched.map(rosterCard).join('') + '</div>'
+        : '<div class="roster-status"><h2>No Matching Agents</h2><p>Try another name or language.</p></div>';
+    }
+    function paintListShell() {
+      var selected = (qs('#agentLang', root) || {}).value || '';
+      var typed = (qs('#agentSearch', root) || {}).value || '';
+      var langs = HubRoster.languages();
+      root.innerHTML = '<div class="roster-tools">' +
+        '<label class="roster-field"><span>Search by Name</span><input id="agentSearch" type="search" placeholder="Search by Name" autocomplete="off" value="' + h(typed) + '"></label>' +
+        '<label class="roster-field"><span>Language</span><select id="agentLang">' +
+        '<option value="">All Languages</option>' +
+        langs.map(function (lang) { return '<option value="' + h(lang) + '"' + (lang === selected ? ' selected' : '') + '>' + h(lang) + '</option>'; }).join('') +
+        '</select></label></div>' +
+        '<p class="roster-lead">ENESMA Realty agents. Search by name or choose a language.</p>' +
+        '<div id="rosterGrid"></div>';
+      qs('#agentSearch', root).oninput = paintList;
+      qs('#agentLang', root).onchange = paintList;
+      paintList();
+    }
+    function paint() {
+      if (HubRoster.state.status === 'error' && !HubRoster.agents().length) return showError();
+      if (view === 'agent') return paintProfile(HubRoster.bySlug(slug));
+      paintListShell();
+    }
+    if (HubRoster.state.status !== 'ready') showLoading();
+    else paint();
+    HubRoster.load(true).then(paint).catch(function () {
+      if (!HubRoster.agents().length) showError();
+    });
+  }
+
   function bindChrome() {
     var top = qs('#top');
     if (qs('#menuBtn')) qs('#menuBtn').onclick = function () { if (top) top.classList.toggle('nav-open'); };
-    qsa('.drop > button.link').forEach(function (btn) {
+    qsa('.caret-btn').forEach(function (btn) {
       btn.onclick = function (e) {
-        if (window.matchMedia('(max-width: 880px)').matches) {
-          e.preventDefault();
-          btn.parentNode.classList.toggle('open');
+        e.preventDefault();
+        e.stopPropagation();
+        var drop = btn.parentNode;
+        var willOpen = !drop.classList.contains('open');
+        qsa('.drop.open').forEach(function (node) {
+          node.classList.remove('open');
+          var caret = qs('.caret-btn', node);
+          if (caret) caret.setAttribute('aria-expanded', 'false');
+        });
+        if (willOpen) {
+          drop.classList.add('open');
+          btn.setAttribute('aria-expanded', 'true');
         }
       };
     });
+    qsa('#nav a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        if (top) top.classList.remove('nav-open');
+        qsa('.drop.open').forEach(function (node) { node.classList.remove('open'); });
+      });
+    });
+    bindRoster();
     if (qs('#signOut')) qs('#signOut').onclick = function () { Auth.signOut(); renderLogin(); };
     if (qs('#searchBtn')) qs('#searchBtn').onclick = function () { searchOpen = true; renderApp(); };
     if (qs('#searchScrim')) {
@@ -1534,9 +1688,13 @@
     window.scrollTo(0, 0);
     syncHomeScreen();
   }
+  function readyRoster() {
+    if (!window.HubRoster) return Promise.resolve();
+    return HubRoster.load().catch(function () {});
+  }
   function afterAuth() {
     if (!location.hash || location.hash === '#/login') location.hash = '#/';
-    renderApp();
+    readyRoster().then(function () { renderApp(); });
   }
 
   function onRoute() {
@@ -1562,8 +1720,8 @@
     if (!S.token) { renderLogin(); return; }
     Auth.api('me').then(function (d) {
       S.user = (d && d.user) || d;
-      renderApp();
-    }).catch(function (err) {
+      return readyRoster();
+    }).then(function () { renderApp(); }).catch(function (err) {
       renderLogin(err.code === 'AUTH' ? '' : err.message);
     });
   }

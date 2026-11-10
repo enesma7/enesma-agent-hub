@@ -52,17 +52,25 @@ button, input { font: inherit; }
   font-size: 13.5px; letter-spacing: .02em; padding: 8px 0; text-decoration: none;
 }
 .nav a:hover, .nav button.link:hover, .nav a.on { color: var(--gold-a); }
-.drop { position: relative; }
-.drop > button.link { display: inline-flex; align-items: center; gap: 5px; }
-.drop > button.link .caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; opacity: .7; }
-.drop-menu {
-  display: none; position: absolute; right: 0; top: calc(100% + 6px);
-  background: var(--black); min-width: 230px; padding: 8px 0;
-  border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,.28);
+.drop { position: relative; display: inline-flex; align-items: center; }
+.caret-btn {
+  background: none; border: 0; color: var(--white); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 28px; padding: 0;
 }
-.drop:hover .drop-menu, .drop:focus-within .drop-menu, .drop.open .drop-menu { display: block; }
-.drop-menu a { display: block; padding: 9px 16px; white-space: nowrap; font-size: 13px; }
-.drop-menu a:hover { background: rgba(251,251,251,.06); }
+.caret-btn .caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; opacity: .85; }
+.drop.on .link, .drop.on .caret-btn { color: var(--gold-a); }
+.drop-menu {
+  display: none; position: absolute; right: 0; top: 100%; z-index: 50;
+  min-width: 230px; max-height: 70vh; overflow: auto; padding-top: 8px;
+}
+.drop-menu a { display: block; padding: 9px 16px; white-space: nowrap; font-size: 13px; background: var(--black); }
+.drop-menu a:first-child { border-radius: 8px 8px 0 0; padding-top: 12px; }
+.drop-menu a:last-child { border-radius: 0 0 8px 8px; padding-bottom: 12px; }
+.drop-menu a:hover { background: #16161c; }
+@media (min-width: 881px) {
+  .drop:hover .drop-menu, .drop:focus-within .drop-menu, .drop.open .drop-menu { display: block; }
+}
 .nav-tools { display: flex; align-items: center; gap: 14px; margin-left: 8px; }
 .icon-btn {
   background: none; border: 0; color: var(--white); cursor: pointer;
@@ -497,10 +505,43 @@ body > .hero-park {
 .tech-card h3 { margin: 0 0 6px; font-size: 20px; font-weight: 500; }
 .tech-card p { margin: 0; color: var(--muted); font-size: 14px; }
 .agent { display: flex; flex-direction: column; align-items: center; max-width: 760px; margin: 0 auto; }
-.agent > img {
+.agent > img, .agent > .roster-ph {
   width: min(260px, 72vw); max-width: 260px; aspect-ratio: 1 / 1; height: auto;
-  object-fit: cover; border-radius: var(--radius); margin: 0 auto 28px;
+  object-fit: cover; border-radius: var(--radius); margin: 0 auto 18px;
 }
+.roster-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 8px; }
+.roster-field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.roster-field input, .roster-field select {
+  width: 100%; border: 1px solid #d0d0d4; border-radius: 8px; padding: 11px 12px; background: #fff;
+}
+.roster-lead { text-align: center; color: #5c5c62; margin: 8px 0 28px; }
+.roster-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); }
+.roster-card {
+  background: #fff; border: 1px solid #ececec; border-radius: var(--radius); padding: 16px;
+  min-width: 0; overflow-wrap: anywhere;
+}
+.roster-main { display: block; text-decoration: none; color: inherit; }
+.roster-card img, .roster-card .roster-ph {
+  width: 100%; height: 200px; object-fit: cover; object-position: center top;
+  border-radius: 6px; margin: 0 0 12px; background: #fff;
+}
+.roster-ph {
+  display: grid; place-items: center; border: 1px solid #ececec; color: #8d7b4e;
+  font-size: clamp(28px, 5vw, 42px); font-weight: 500; letter-spacing: .08em;
+}
+.roster-card h3 { margin: 0 0 4px; font-size: 20px; font-weight: 500; }
+.roster-title, .roster-langs, .roster-contact { margin: 0 0 6px; color: var(--muted); font-size: 14px; line-height: 1.45; }
+.roster-contact a { color: inherit; }
+.roster-card .socials { justify-content: flex-start; gap: 12px; margin: 8px 0 0; }
+.roster-card .socials svg { width: 22px; height: 22px; }
+.roster-status { text-align: center; padding: 12px 0 8px; }
+.roster-status h2 { font-size: 28px; font-weight: 500; margin: 0 0 8px; }
+.roster-back { margin: 0 0 18px; }
+.roster-back a { color: inherit; }
+.photo-admin { text-align: center; margin: 0 0 28px; }
+.photo-hint, .photo-msg { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.photo-msg { min-height: 1.2em; }
+.agent .roster-ph { display: grid; }
 .agent-body { text-align: center; width: 100%; }
 .agent-info { margin: 0 0 40px; }
 .agent h2 { margin: 0 0 8px; font-size: 28px; font-weight: 500; }
@@ -588,8 +629,13 @@ body > .hero-park {
   .menu-btn { display: block; }
   .nav { display: none; position: absolute; left: 0; right: 0; top: 100%; background: var(--black); padding: 8px 16px 18px; flex-direction: column; align-items: flex-start; }
   .top.nav-open .nav { display: flex; }
-  .drop-menu { position: static; box-shadow: none; padding-left: 8px; }
-  .grid-2, .holidays, .tech-grid, .partners, .swatches, .shot-grid, .refer-stats { grid-template-columns: 1fr; }
+  .drop { flex-wrap: wrap; width: 100%; }
+  .caret-btn { margin-left: auto; width: 44px; height: 44px; }
+  .drop-menu { position: static; display: none; width: 100%; max-height: none; padding: 0 0 8px 12px; background: transparent; }
+  .drop.open .drop-menu { display: block; }
+  .drop-menu a { background: transparent; border-radius: 0; padding-top: 9px; padding-bottom: 9px; }
+  .grid-2, .holidays, .tech-grid, .partners, .swatches, .shot-grid, .refer-stats, .roster-tools { grid-template-columns: 1fr; }
+  .roster-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
   .foot-wrap { padding: 48px 16px 24px; }
   .foot { grid-template-columns: 1fr 1fr 1fr; gap: 32px 28px; padding: 36px 24px 32px; }
   .foot > div:first-child { grid-column: 1 / -1; padding-bottom: 8px; }

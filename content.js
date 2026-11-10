@@ -574,6 +574,7 @@ window.HUB_CONTENT = {
       "slug": "enrique-esparza",
       "name": "Enrique Esparza",
       "role": "Broker / Owner",
+      "languages": ["English", "Spanish"],
       "phone": "(909) 212-2994",
       "email": "enrique@enesmabroker.com",
       "web": "https://enriqueesparza.com",
