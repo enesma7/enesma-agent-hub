@@ -65,6 +65,15 @@ agents.forEach(function (agent) {
 
 assert.strictEqual(roster.safePhoto('https://evil.example/photo.jpg'), '');
 assert.strictEqual(roster.safePhoto('http://drive.google.com/thumbnail?id=abc'), '');
+assert.strictEqual(roster.safePhoto('https://www.enesmarealty.com/assets/agents/enrique.jpg'), 'https://www.enesmarealty.com/assets/agents/enrique.jpg');
+assert.strictEqual(roster.safePhoto('https://agent.enesmarealty.com/assets/agents/enrique.jpg'), 'https://agent.enesmarealty.com/assets/agents/enrique.jpg');
+assert.strictEqual(roster.safePhoto('https://WWW.ENESMAREALTY.COM/assets/agents/enrique.jpg'), 'https://WWW.ENESMAREALTY.COM/assets/agents/enrique.jpg');
+assert.strictEqual(roster.safePhoto('http://www.enesmarealty.com/assets/agents/enrique.jpg'), '');
+assert.strictEqual(roster.safePhoto('https://enesmarealty.com/assets/agents/enrique.jpg'), '');
+assert.strictEqual(roster.safePhoto('https://app.enesmarealty.com/assets/agents/enrique.jpg'), '');
+assert.strictEqual(roster.safePhoto('https://evil.enesmarealty.com/assets/agents/enrique.jpg'), '');
+assert.strictEqual(roster.safePhoto('https://www.enesmarealty.com.evil.com/assets/agents/enrique.jpg'), '');
+assert.strictEqual(roster.safePhoto('https://notwww.enesmarealty.com/photo.jpg'), '');
 assert.strictEqual(roster.localHeadshot('assets/agents/enrique.jpg'), 'assets/agents/enrique.jpg');
 assert.strictEqual(roster.localHeadshot('assets/agents/lilia.jpg'), 'assets/agents/lilia.jpg');
 assert.strictEqual(roster.localHeadshot('javascript:alert(1)'), '');
