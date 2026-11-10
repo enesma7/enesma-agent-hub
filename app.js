@@ -1192,7 +1192,6 @@
       var admin = HubRoster.isAdmin(S.user)
         ? '<div class="photo-admin"><button class="btn" id="photoBtn" type="button">' + photoBtn + '</button>' +
           '<input id="photoFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>' +
-          '<p class="photo-hint">Use a photo with a white background.</p>' +
           '<p class="photo-msg" id="photoMsg" role="status"></p></div>'
         : '';
       root.innerHTML = '<p class="roster-back"><a href="#/agents">All Agents</a></p><div class="agent">' +

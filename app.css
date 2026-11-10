@@ -576,7 +576,7 @@ body > .hero-park {
   margin-left: auto;
   margin-right: auto;
 }
-.photo-hint, .photo-msg { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+.photo-msg { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
 .photo-msg { min-height: 1.2em; }
 .agent .roster-ph { display: grid; }
 .agent h2 { margin: 0 0 8px; font-size: 28px; font-weight: 500; }
