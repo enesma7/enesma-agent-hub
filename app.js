@@ -388,9 +388,12 @@
       '<section class="section"><div class="wrap">' + sectionHead('Agent Resources', 'Forms, tools, and support to help you close with confidence.') + shotGrid(C.site && C.site.home) + '</div></section>' +
       '<section class="section" style="padding-top:0"><div class="wrap">' + sectionHead('Upcoming Events', '') +
       (ev.length ? '<div class="grid-2">' + evHtml + '</div>' : evHtml) + '</div></section>' +
-      '<div class="pills" aria-label="Add the Hub to your phone">' +
+      '<div class="pills" aria-label="Add the Hub">' +
       '<a class="pill" href="' + h(CFG.ADD_IOS) + '" target="_blank" rel="noopener"><img src="assets/add-iphone.png" width="1169" height="229" alt="Add to iPhone"></a>' +
-      '<a class="pill" href="' + h(CFG.ADD_ANDROID) + '" target="_blank" rel="noopener"><img src="assets/add-android.png" width="1169" height="229" alt="Add to Android"></a></div>';
+      '<a class="pill" href="' + h(CFG.ADD_ANDROID) + '" target="_blank" rel="noopener"><img src="assets/add-android.png" width="1169" height="229" alt="Add to Android"></a>' +
+      '<a class="pill pill-ext" href="' + h(CFG.ADD_EXTENSION) + '" target="_blank" rel="noopener">' +
+      '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 8a16 16 0 0 1 13.86 8H24z"/><path fill="#FBBC04" d="M10.14 16A16 16 0 0 1 24 8v16z"/><path fill="#34A853" d="M24 40a16 16 0 0 1-13.86-8L24 24z"/><path fill="#4285F4" d="M37.86 16A16 16 0 0 1 24 40V24z"/><circle cx="24" cy="24" r="7.2" fill="#fff"/><circle cx="24" cy="24" r="5.4" fill="#4285F4"/></svg>' +
+      'Add Extension</a></div>';
   }
   function pageCompliance() {
     return pageHero('COMPLIANCE', 'assets/banners/compliance.jpg') +
