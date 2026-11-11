@@ -12,6 +12,8 @@
   var holidayFileTasks = {};
   var holidayPrefetchQueue = [];
   var holidayPrefetchActive = 0;
+  var holidayFileWaiters = {};
+  var holidayShareProbe;
 
   function h(s) {
     return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -369,7 +371,7 @@
     }).join('');
     return pageHero('HOLIDAYS', 'assets/banners/holidays.jpg') +
       '<section class="section"><div class="wrap">' +
-      '<p class="save-hint">Tap to play. Press and hold, or tap Download, to save the video to your phone. Add your photo and info in the empty space at the bottom.</p>' +
+      '<p class="save-hint">Tap to play. Tap Download, or press and hold the video, to save it to your phone. Add your photo and info in the empty space at the bottom.</p>' +
       '<div class="holidays">' + figs + '</div>' +
       '</div></section>';
   }
@@ -397,6 +399,23 @@
     try { return navigator.canShare({ files: [file] }); }
     catch (e) { return false; }
   }
+  function holidayFileShareAvailable() {
+    if (holidayShareProbe != null) return holidayShareProbe;
+    holidayShareProbe = false;
+    if (!navigator.share || !navigator.canShare || typeof File !== 'function') return false;
+    try {
+      holidayShareProbe = !!navigator.canShare({
+        files: [new File(['0'], 'holiday.mp4', { type: 'video/mp4' })]
+      });
+    } catch (e) {
+      holidayShareProbe = false;
+    }
+    return holidayShareProbe;
+  }
+  // iOS/iPadOS, and any browser that can share a video file, must keep the user gesture.
+  function holidayShareNeedsFile() {
+    return holidaySaveOpensTab() || holidayFileShareAvailable();
+  }
   function startHolidayPrefetch(job) {
     holidayPrefetchActive += 1;
     holidayFileTasks[job.url] = fetch(job.url, { credentials: 'same-origin' })
@@ -414,16 +433,41 @@
         delete holidayFileTasks[job.url];
       })
       .then(function () {
+        var file = holidayFiles[job.url] || null;
         holidayPrefetchActive -= 1;
+        notifyHolidayFile(job.url, file);
         pumpHolidayPrefetch();
       });
   }
   function pumpHolidayPrefetch() {
     while (holidayPrefetchActive < 2 && holidayPrefetchQueue.length) {
       var job = holidayPrefetchQueue.shift();
-      if (!job || !job.url || holidayFiles[job.url] || holidayFileTasks[job.url]) continue;
+      if (!job || !job.url || holidayFiles[job.url] || holidayFileTasks[job.url]) {
+        if (job && job.url && holidayFiles[job.url]) notifyHolidayFile(job.url, holidayFiles[job.url]);
+        continue;
+      }
       startHolidayPrefetch(job);
     }
+  }
+  function notifyHolidayFile(url, file) {
+    var waiters = holidayFileWaiters[url];
+    if (!waiters) return;
+    delete holidayFileWaiters[url];
+    waiters.forEach(function (resolve) {
+      try { resolve(file || null); } catch (e) {}
+    });
+  }
+  function whenHolidayFile(url) {
+    if (!url) return Promise.resolve(null);
+    if (holidayFiles[url]) return Promise.resolve(holidayFiles[url]);
+    var task = holidayFileTasks[url];
+    if (task && typeof task.then === 'function') {
+      return task.then(function () { return holidayFiles[url] || null; });
+    }
+    return new Promise(function (resolve) {
+      if (!holidayFileWaiters[url]) holidayFileWaiters[url] = [];
+      holidayFileWaiters[url].push(resolve);
+    });
   }
   function prioritizeHolidayPrefetch(url, filename) {
     if (!url || holidayFiles[url] || holidayFileTasks[url]) return;
@@ -452,35 +496,38 @@
       if (a.parentNode) a.parentNode.removeChild(a);
     }, 0);
   }
-  function saveHolidayVideo(url, filename, title) {
-    if (!url) return;
+  function saveHolidayVideo(url, filename, title, onSettled) {
+    if (!url) return false;
     var name = filename || holidayFileName(url);
     var file = holidayFiles[url];
-    // Share needs the File already in hand. Awaiting a fetch drops the iOS user gesture.
+    // Share needs the File already in hand. Waiting on a fetch drops the iOS user gesture.
     if (file && canShareHolidayFile(file)) {
       var payload = { files: [file] };
       if (title) payload.title = title;
-      try {
-        var shared = navigator.share(payload);
-        if (shared && typeof shared.catch === 'function') {
-          shared.catch(function (err) {
-            if (err && err.name === 'AbortError') return;
-            if (holidaySaveOpensTab()) openHolidayVideo(url);
-            else downloadHolidayFile(url, name);
-          });
-        }
-      } catch (err) {
+      var finish = function (err) {
+        if (typeof onSettled === 'function') onSettled(err || null);
+        if (!err || err.name === 'AbortError') return;
         if (holidaySaveOpensTab()) openHolidayVideo(url);
         else downloadHolidayFile(url, name);
+      };
+      try {
+        var shared = navigator.share(payload);
+        if (shared && typeof shared.then === 'function') {
+          shared.then(function () { finish(null); }, function (err) {
+            finish(err || new Error('share failed'));
+          });
+        } else {
+          finish(null);
+        }
+      } catch (err) {
+        finish(err);
       }
-      return;
+      return true;
     }
     prioritizeHolidayPrefetch(url, name);
-    if (holidaySaveOpensTab()) {
-      openHolidayVideo(url);
-      return;
-    }
+    if (holidayShareNeedsFile()) return false;
     downloadHolidayFile(url, name);
+    return false;
   }
   function primeHolidayVideo(video) {
     video.muted = true;
@@ -521,6 +568,7 @@
       var startY = 0;
       var startedAt = 0;
       var savedAt = 0;
+      var prepareGen = 0;
       function clearTimer() {
         if (timer) {
           clearTimeout(timer);
@@ -584,10 +632,64 @@
           sync();
         }
       }
+      function restoreDownloadLabel() {
+        if (!link) return;
+        link.textContent = 'Download';
+        link.classList.remove('is-preparing');
+        link.classList.remove('is-save-ready');
+        link.setAttribute('aria-label', 'Download ' + info.title + ' MP4');
+      }
+      function stageHolidaySave() {
+        prioritizeHolidayPrefetch(info.url, info.filename);
+        if (!link) {
+          whenHolidayFile(info.url).then(function (file) {
+            if (!file) openHolidayVideo(info.url);
+          });
+          return;
+        }
+        if (link.classList.contains('is-preparing')) return;
+        var gen = ++prepareGen;
+        link.textContent = 'Preparing…';
+        link.classList.add('is-preparing');
+        link.classList.remove('is-save-ready');
+        link.setAttribute('aria-label', 'Preparing ' + info.title);
+        whenHolidayFile(info.url).then(function (file) {
+          if (gen !== prepareGen || !link.isConnected) return;
+          if (file && canShareHolidayFile(file)) {
+            link.textContent = 'Tap To Save';
+            link.classList.remove('is-preparing');
+            link.classList.add('is-save-ready');
+            link.setAttribute('aria-label', 'Tap To Save ' + info.title);
+            return;
+          }
+          restoreDownloadLabel();
+          openHolidayVideo(info.url);
+        });
+      }
+      // Share immediately when the File is ready. Otherwise keep the gesture for the next tap.
+      function beginHolidaySave(fromLink) {
+        prioritizeHolidayPrefetch(info.url, info.filename);
+        var file = holidayFiles[info.url];
+        if (file && canShareHolidayFile(file)) {
+          saveHolidayVideo(info.url, info.filename, info.title, restoreDownloadLabel);
+          return true;
+        }
+        if (!file && holidayShareNeedsFile()) {
+          stageHolidaySave();
+          return true;
+        }
+        if (holidaySaveOpensTab()) {
+          openHolidayVideo(info.url);
+          return true;
+        }
+        if (fromLink) return false;
+        downloadHolidayFile(info.url, info.filename);
+        return true;
+      }
       function save(force) {
         if (!force && savedAt && (Date.now() - savedAt) < 900) return;
         savedAt = Date.now();
-        saveHolidayVideo(info.url, info.filename, info.title);
+        beginHolidaySave(false);
       }
       function cancelHold() {
         down = false;
@@ -672,16 +774,7 @@
         if (e.key === 'Enter' || e.key === ' ') suppressClick = false;
       }
       function onDownloadClick(e) {
-        prioritizeHolidayPrefetch(info.url, info.filename);
-        if (holidayFiles[info.url] && canShareHolidayFile(holidayFiles[info.url])) {
-          e.preventDefault();
-          save(true);
-          return;
-        }
-        if (holidaySaveOpensTab()) {
-          e.preventDefault();
-          save(true);
-        }
+        if (beginHolidaySave(true)) e.preventDefault();
       }
       function onMedia() {
         if (!video.paused && !video.ended) video.classList.add('is-shown');
@@ -732,6 +825,7 @@
       }
       sync();
       holidayCleanups.push(clearTimer);
+      holidayCleanups.push(function () { prepareGen += 1; });
       holidayCleanups.push(function () {
         window.removeEventListener('pointerup', onPointerUp);
         window.removeEventListener('pointercancel', onPointerCancel);
