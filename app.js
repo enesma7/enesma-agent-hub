@@ -274,6 +274,7 @@
     v.defaultMuted = true;
     v.playsInline = true;
     v.preload = 'auto';
+    v.setAttribute('preload', 'auto');
     v.setAttribute('muted', '');
     v.setAttribute('playsinline', '');
     v.setAttribute('webkit-playsinline', '');
@@ -289,8 +290,10 @@
       v.setAttribute('autoplay', '');
       v.setAttribute('loop', '');
     }
-    v._heroSrc = src;
-    v.src = src;
+    if (src) {
+      v._heroSrc = src;
+      v.src = src;
+    }
     return v;
   }
   function warmHero() {
@@ -302,10 +305,16 @@
     park.setAttribute('aria-hidden', 'true');
     var first = makeHeroVideo(clips[0], true);
     var next = makeHeroVideo(clips[1 % clips.length], false);
+    // The third element only preloads the clip after next. It stays idle
+    // until the first frame is already on screen, so it does not compete
+    // with the opening footage.
+    var ahead = makeHeroVideo('', false);
+    ahead.className = 'idle';
     park.appendChild(first);
     park.appendChild(next);
+    park.appendChild(ahead);
     document.body.appendChild(park);
-    heroWarm = { park: park, vids: [first, next], held: false, mounted: false, gen: 0, api: null };
+    heroWarm = { park: park, vids: [first, next, ahead], held: false, mounted: false, gen: 0, api: null };
     var playAttempt = first.play();
     if (playAttempt && playAttempt.catch) playAttempt.catch(function () {});
     function hold(frameReady) {
@@ -372,8 +381,9 @@
     if (heroWarm) return '<div class="hero-videos" aria-hidden="true"></div>';
     var clips = heroClipSrcs();
     return '<div class="hero-videos" aria-hidden="true">' +
-      '<video class="over on" autoplay muted playsinline webkit-playsinline preload="auto" src="' + clips[0] + '"></video>' +
+      '<video class="over on" autoplay muted playsinline webkit-playsinline loop preload="auto" src="' + clips[0] + '"></video>' +
       '<video class="under" muted playsinline webkit-playsinline preload="auto" src="' + clips[1 % clips.length] + '"></video>' +
+      '<video class="idle" muted playsinline webkit-playsinline preload="auto" src="' + clips[2 % clips.length] + '"></video>' +
       '</div>';
   }
   function pageHome() {
@@ -1461,12 +1471,30 @@
       if (!v._heroSrc) v._heroSrc = clips[i] || v.getAttribute('src') || '';
     });
     var active = 0;
-    var clipAt = [0, 1 % clips.length];
+    var clipAt = [];
     var fading = false;
+    var handoffForce = false;
+    var handoffEl = null;
     var fadeMs = 1600;
     var heroEl = hero;
+    var heroVisible = true;
+    var retryTimer = 0;
+    for (var seed = 0; seed < slots.length; seed++) clipAt[seed] = seed % clips.length;
+    function liveBox() {
+      var parent = heroWarm && heroWarm.park && heroWarm.park.parentNode;
+      if (parent && parent.classList && parent.classList.contains('hero-videos')) return parent;
+      return box;
+    }
+    function heroOff() {
+      var live = liveBox();
+      return !!(live && live.classList.contains('off'));
+    }
+    function incomingIndex() {
+      return (active + 1) % slots.length;
+    }
     function showTap() {
-      if (box) box.classList.remove('off');
+      var live = liveBox();
+      if (live) live.classList.remove('off');
       if (slots[active]) slots[active].classList.add('on', 'over');
       if (heroEl) heroEl.classList.add('needs-gesture');
     }
@@ -1475,7 +1503,8 @@
     }
     function reveal(v) {
       if (!v || v !== slots[active]) return;
-      if (box) box.classList.remove('off');
+      var live = liveBox();
+      if (live) live.classList.remove('off');
       v.classList.add('on', 'over');
       clearTap();
     }
@@ -1484,138 +1513,321 @@
       return /not allowed|user gesture|interact with|user agent/i.test(String(err.message || ''));
     }
     function restack() {
+      var inc = incomingIndex();
       slots.forEach(function (v, i) {
         var top = i === active;
+        var under = i === inc;
         v.classList.toggle('over', top);
-        v.classList.toggle('under', !top);
+        v.classList.toggle('under', under);
         v.classList.toggle('on', top);
-        if (!v.classList.contains('fading')) v.style.opacity = '1';
+        v.classList.toggle('idle', !top && !under);
+        if (!v.classList.contains('fading')) v.style.opacity = (top || under) ? '1' : '0';
       });
     }
     function arm(el, src) {
+      if (!el || !src) return;
       prepHeroVideo(el);
       el.autoplay = false;
       el.removeAttribute('autoplay');
-      if (el._heroSrc === src) return;
-      el._heroSrc = src;
-      el.src = src;
-      el.addEventListener('loadeddata', function parkFrame() {
-        if (el.classList.contains('over')) return;
+      var hasSrc = !!el.getAttribute('src');
+      var changed = el._heroSrc !== src || !hasSrc;
+      if (!changed && el._armHooked) {
+        // A paused element can drop back to an empty network state. Ask
+        // for the file again so the handoff is not waiting on a dead buffer.
+        if (el.readyState < 2 && el.networkState === 0 && el !== slots[active]) {
+          try { el.load(); } catch (e) {}
+        }
+        return;
+      }
+      if (changed) {
+        el._heroSrc = src;
+        el._parkGen = (el._parkGen || 0) + 1;
+        el._armHooked = false;
+        el.src = src;
+      }
+      var gen = el._parkGen || (el._parkGen = 1);
+      el._armHooked = true;
+      function park() {
+        if (el._parkGen !== gen) return;
+        if (el === handoffEl || el === slots[active]) return;
+        // Park only once the browser can play through. Pausing on the
+        // first frame (loadeddata) stops the download before the handoff.
+        if (el.readyState < 4) return;
         try {
-          if (el.currentTime < 0.001) el.currentTime = 0.001;
+          if (el.currentTime < 0.001 || el.currentTime > 0.2) el.currentTime = 0.001;
         } catch (e) {}
         try { el.pause(); } catch (e) {}
-      }, { once: true });
+      }
+      if (el.readyState >= 4) park();
+      else el.addEventListener('canplaythrough', park, { once: true });
+    }
+    function primeNext() {
+      var inc = incomingIndex();
+      if (slots[inc]) arm(slots[inc], clips[clipAt[inc]]);
+      for (var s = 0; s < slots.length; s++) {
+        if (s === active || s === inc) continue;
+        arm(slots[s], clips[clipAt[s]]);
+      }
     }
     function play(v) {
-      if (!v || (box && box.classList.contains('off'))) return;
+      if (!v || heroOff()) return;
       prepHeroVideo(v);
       v.autoplay = true;
-      var wasLoop = v.loop || v.hasAttribute('loop');
-      v.loop = false;
-      v.removeAttribute('loop');
-      // The parked clip loops until Home is on screen. If that loop is about
-      // to end, start it again so the crossfade still has a visible clip.
-      if (wasLoop && isFinite(v.duration) && v.currentTime > v.duration - fadeMs / 1000 - 0.3) {
-        try { v.currentTime = 0.05; } catch (e) {}
-      }
+      // Keep looping until the next clip is buffered. Clearing loop here
+      // is what froze the hero: the clip then played out and stopped.
+      v.loop = true;
+      v.setAttribute('loop', '');
       v.setAttribute('autoplay', '');
-      if (box) box.classList.remove('off');
+      var live = liveBox();
+      if (live) live.classList.remove('off');
       v.classList.add('on', 'over');
       var p = v.play();
       if (p && p.then) {
-        p.then(function () { reveal(v); }).catch(function (err) {
+        p.then(function () { reveal(v); primeNext(); }).catch(function (err) {
           if (err && err.name === 'AbortError') return;
           if (autoplayBlocked(err)) showTap();
         });
       } else {
         reveal(v);
+        primeNext();
       }
       return p;
     }
-    function goNext() {
-      if (fading || (box && box.classList.contains('off'))) return;
-      if (heroWarm && !heroWarm.mounted) return;
+    function resume(v) {
+      if (!v || heroOff() || !heroVisible) return;
+      v.loop = true;
+      v.setAttribute('loop', '');
+      v.muted = true;
+      v.defaultMuted = true;
+      if (!v.paused && !v.ended && v.readyState >= 2) return;
+      if (v.ended || (isFinite(v.duration) && v.duration > 0 && v.currentTime >= v.duration - 0.05)) {
+        try { v.currentTime = 0.05; } catch (e) {}
+      }
+      var p = v.play();
+      if (p && p.catch) p.catch(function (err) {
+        if (err && err.name === 'AbortError') return;
+        if (autoplayBlocked(err)) showTap();
+      });
+      return p;
+    }
+    function goNext(force) {
+      if (heroOff() || (heroWarm && !heroWarm.mounted)) return;
+      if (fading) {
+        if (force) handoffForce = true;
+        return;
+      }
       fading = true;
+      handoffForce = !!force;
       var gen = heroWarm ? heroWarm.gen : 0;
       var outgoing = active;
-      var incoming = outgoing ? 0 : 1;
-      var incomingClip = clipAt[incoming];
+      var incoming = incomingIndex();
       var prev = slots[outgoing];
       var next = slots[incoming];
       var started = false;
+      var cued = false;
+      handoffEl = next;
+      if (!next.getAttribute('src') || next._heroSrc !== clips[clipAt[incoming]]) {
+        arm(next, clips[clipAt[incoming]]);
+      }
       function aborted() {
         return (heroWarm && heroWarm.gen !== gen) || !next.isConnected;
       }
+      function stopRetry() {
+        if (retryTimer) { clearTimeout(retryTimer); retryTimer = 0; }
+      }
+      function cleanupWait() {
+        stopRetry();
+        next.removeEventListener('playing', onSignal);
+        next.removeEventListener('canplaythrough', onSignal);
+        next.removeEventListener('error', onNextError);
+      }
+      function readyNow() {
+        if (next.error || !(next.videoWidth > 1)) return false;
+        if (next.readyState >= 4) return true;
+        return handoffForce && next.readyState >= 2;
+      }
+      function cueStart() {
+        if (cued || next.readyState < 1) return;
+        try {
+          cued = true;
+          if (next.currentTime > 0.2 || next.currentTime < 0.001) next.currentTime = 0.001;
+        } catch (e) { cued = false; }
+      }
       function begin() {
         if (started || aborted()) return;
-        if (!(next.videoWidth > 1)) return;
+        if (!readyNow() || next.paused || next.ended) return;
         started = true;
-        next.removeEventListener('playing', onPlaying);
+        cleanupWait();
+        next.loop = true;
+        next.setAttribute('loop', '');
+        if (isFinite(prev.duration) && prev.currentTime >= prev.duration - fadeMs / 1000 - 0.25) {
+          prev.loop = false;
+          prev.removeAttribute('loop');
+        }
         prev.classList.add('over', 'fading');
         next.classList.add('under');
-        next.classList.remove('over');
+        next.classList.remove('over', 'idle');
+        next.style.opacity = '1';
         prev.style.opacity = '1';
         void prev.offsetWidth;
         prev.style.opacity = '0';
         active = incoming;
         setTimeout(function () {
-          if (aborted()) { fading = false; return; }
+          if (aborted()) {
+            fading = false;
+            handoffEl = null;
+            handoffForce = false;
+            return;
+          }
           prev.classList.remove('fading', 'over', 'on');
-          prev.classList.add('under');
-          prev.style.opacity = '1';
-          next.classList.remove('under');
-          next.classList.add('over', 'on');
           try { prev.pause(); } catch (e) {}
-          var follow = (incomingClip + 1) % clips.length;
-          arm(prev, clips[follow]);
-          clipAt[outgoing] = follow;
+          var showing = clipAt[active];
+          var inc = incomingIndex();
+          var need = (showing + 1) % clips.length;
+          if (slots[inc] && (clipAt[inc] !== need || !slots[inc].getAttribute('src'))) {
+            clipAt[inc] = need;
+            arm(slots[inc], clips[need]);
+          }
+          var step = 2;
+          for (var s = 0; s < slots.length; s++) {
+            if (s === active || s === inc) continue;
+            var want = (showing + step) % clips.length;
+            step += 1;
+            if (clipAt[s] !== want || !slots[s].getAttribute('src')) {
+              clipAt[s] = want;
+              arm(slots[s], clips[want]);
+            }
+          }
           fading = false;
+          handoffEl = null;
+          handoffForce = false;
+          restack();
+          primeNext();
         }, fadeMs);
       }
-      function onPlaying() { begin(); }
-      next.addEventListener('playing', onPlaying);
-      prepHeroVideo(next);
-      next.autoplay = true;
-      try {
-        if (next.currentTime > 0.2 || next.currentTime < 0.001) next.currentTime = 0.001;
-      } catch (e) {}
-      var p = next.play();
-      if (p && p.then) {
-        p.then(function () { if (next.videoWidth > 1) begin(); }).catch(function (err) {
-          if (err && err.name === 'AbortError') return;
-          if (autoplayBlocked(err)) showTap();
-        });
-      }
-      setTimeout(function () {
+      function onSignal() { begin(); }
+      function onNextError() {
         if (started || aborted()) return;
-        fading = false;
-        next.removeEventListener('playing', onPlaying);
-        try { next.pause(); } catch (e) {}
-        restack();
-      }, 1200);
+        var skip = (clipAt[incoming] + 1) % clips.length;
+        if (skip === clipAt[outgoing] && clips.length > 2) skip = (skip + 1) % clips.length;
+        if (skip === clipAt[incoming]) return;
+        clipAt[incoming] = skip;
+        cued = false;
+        arm(next, clips[skip]);
+      }
+      function retry() {
+        if (started) return;
+        if (aborted()) {
+          cleanupWait();
+          fading = false;
+          handoffEl = null;
+          handoffForce = false;
+          return;
+        }
+        if (!heroVisible || document.hidden) {
+          retryTimer = setTimeout(retry, 500);
+          return;
+        }
+        if (next.error) onNextError();
+        if (readyNow()) {
+          cueStart();
+          if (next.paused || next.ended) {
+            var p = next.play();
+            if (p && p.then) p.then(begin).catch(function (err) {
+              if (err && err.name === 'AbortError') return;
+              if (autoplayBlocked(err)) showTap();
+              resume(prev);
+            });
+            else begin();
+          } else {
+            begin();
+          }
+        } else {
+          next.preload = 'auto';
+          next.setAttribute('preload', 'auto');
+          if (prev === slots[active]) resume(prev);
+        }
+        if (!started) retryTimer = setTimeout(retry, 500);
+      }
+      // These clips are 5 seconds. The first-paint handoff turned loop off
+      // and gave up after 1.2s, so a slow next file ran the current clip
+      // out and left it frozen. Stay on this clip until canplaythrough.
+      next.addEventListener('playing', onSignal);
+      next.addEventListener('canplaythrough', onSignal);
+      next.addEventListener('error', onNextError);
+      retry();
     }
     if (!heroWarm || !heroWarm.bound) {
       slots.forEach(function (v) {
-        v.onplaying = function () { reveal(v); };
-        v.onerror = function () {
-          if (v !== slots[active] || fading) return;
-          goNext();
-        };
-        v.ontimeupdate = function () {
-          if (v !== slots[active] || fading || !isFinite(v.duration)) return;
-          if (!heroWarm || heroWarm.mounted) {
-            if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
+        v.onplaying = function () { reveal(v); if (v === slots[active]) primeNext(); };
+        v.addEventListener('stalled', function () { if (v === slots[active]) resume(v); });
+        v.addEventListener('waiting', function () { if (v === slots[active]) resume(v); });
+        v.addEventListener('error', function () {
+          if (heroWarm && !heroWarm.mounted) return;
+          if (v === slots[active]) {
+            if (fading) handoffForce = true;
+            else goNext(true);
+            return;
           }
+          if (fading && v === handoffEl) return;
+          var idx = slots.indexOf(v);
+          if (idx < 0) return;
+          var skip = (clipAt[idx] + 1) % clips.length;
+          if (skip === clipAt[active]) skip = (skip + 1) % clips.length;
+          if (skip === clipAt[idx]) return;
+          clipAt[idx] = skip;
+          arm(v, clips[skip]);
+        });
+        v.ontimeupdate = function () {
+          if (v !== slots[active] || !isFinite(v.duration)) return;
+          if (heroWarm && !heroWarm.mounted) return;
+          if (v.currentTime > 0.25) primeNext();
+          if (fading) return;
+          if (v.currentTime >= v.duration - fadeMs / 1000) goNext(false);
         };
         v.onended = function () {
-          if (v === slots[active] && (!heroWarm || heroWarm.mounted)) goNext();
+          if (v === slots[active] && (!heroWarm || heroWarm.mounted)) {
+            resume(v);
+            goNext(false);
+          }
         };
       });
-      if (!slots[1]._heroSrc) arm(slots[1], clips[clipAt[1]]);
-      else slots[1]._heroSrc = slots[1]._heroSrc || clips[clipAt[1]];
+      var watchT = -1;
+      var watchAt = Date.now();
+      var watchKicks = 0;
+      setInterval(function () {
+        if (heroOff() || !heroVisible || document.hidden) return;
+        if (heroWarm && !heroWarm.mounted) return;
+        var v = slots[active];
+        if (!v) return;
+        var now = Date.now();
+        if (v.seeking) { watchAt = now; return; }
+        if (v.currentTime + 0.05 < watchT) {
+          watchT = v.currentTime;
+          watchAt = now;
+          watchKicks = 0;
+          return;
+        }
+        if (!v.paused && v.currentTime > watchT + 0.01) {
+          watchT = v.currentTime;
+          watchAt = now;
+          watchKicks = 0;
+          if (!fading && isFinite(v.duration) && v.duration > 0.5 && v.currentTime >= v.duration - fadeMs / 1000) goNext(false);
+          return;
+        }
+        if (now - watchAt < 2500) return;
+        watchAt = now;
+        watchKicks += 1;
+        if (v.error || watchKicks >= 2) {
+          watchKicks = 0;
+          goNext(true);
+          return;
+        }
+        resume(v);
+      }, 1000);
     }
     restack();
+    primeNext();
     if (box) box.classList.remove('off');
     var io = null;
     function attach(nextHero) {
@@ -1632,10 +1844,15 @@
         io = new IntersectionObserver(function (ents) {
           var vis = ents[0] && ents[0].isIntersecting;
           if (!vis) {
-            if (heroEl && heroEl.getBoundingClientRect().height < 8) return;
+            if (heroEl && heroEl.getBoundingClientRect().height < 8) {
+              heroVisible = true;
+              return;
+            }
+            heroVisible = false;
             if (fading) return;
             slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
           } else {
+            heroVisible = true;
             play(slots[active]);
           }
         }, { threshold: 0.2 });

@@ -138,6 +138,8 @@ body > .hero-park {
 .hero-park video.over { z-index: 2; }
 .hero-videos video.under,
 .hero-park video.under { z-index: 1; }
+.hero-videos video.idle,
+.hero-park video.idle { z-index: 0; opacity: 0; }
 .hero-videos video.fading,
 .hero-park video.fading { transition: opacity 1.6s ease; }
 .hero-videos.off { visibility: hidden; }
