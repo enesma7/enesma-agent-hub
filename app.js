@@ -247,10 +247,6 @@
   }
 
   var HERO_CACHE = '2';
-  // First clip is decoded behind the page as soon as the script runs, then
-  // moved into the hero already showing a frame. Kept outside #app so a
-  // re-render does not throw that frame away.
-  var heroWarm = null;
 
   function heroClipSrcs() {
     var q = '?v=' + HERO_CACHE;
@@ -269,121 +265,10 @@
       'assets/hero/hero-12-san-diego.mp4' + q
     ];
   }
-  function prepHeroVideo(v) {
-    v.muted = true;
-    v.defaultMuted = true;
-    v.playsInline = true;
-    v.preload = 'auto';
-    v.setAttribute('preload', 'auto');
-    v.setAttribute('muted', '');
-    v.setAttribute('playsinline', '');
-    v.setAttribute('webkit-playsinline', '');
-    v.removeAttribute('poster');
-  }
-  function makeHeroVideo(src, onTop) {
-    var v = document.createElement('video');
-    prepHeroVideo(v);
-    v.className = onTop ? 'over on' : 'under';
-    if (onTop) {
-      v.autoplay = true;
-      v.loop = true;
-      v.setAttribute('autoplay', '');
-      v.setAttribute('loop', '');
-    }
-    if (src) {
-      v._heroSrc = src;
-      v.src = src;
-    }
-    return v;
-  }
-  function warmHero() {
-    if (heroWarm) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var clips = heroClipSrcs();
-    var park = document.createElement('div');
-    park.className = 'hero-park';
-    park.setAttribute('aria-hidden', 'true');
-    var first = makeHeroVideo(clips[0], true);
-    var next = makeHeroVideo(clips[1 % clips.length], false);
-    // The third element only preloads the clip after next. It stays idle
-    // until the first frame is already on screen, so it does not compete
-    // with the opening footage.
-    var ahead = makeHeroVideo('', false);
-    ahead.className = 'idle';
-    park.appendChild(first);
-    park.appendChild(next);
-    park.appendChild(ahead);
-    document.body.appendChild(park);
-    heroWarm = { park: park, vids: [first, next, ahead], held: false, mounted: false, gen: 0, api: null };
-    var playAttempt = first.play();
-    if (playAttempt && playAttempt.catch) playAttempt.catch(function () {});
-    function hold(frameReady) {
-      if (!heroWarm || heroWarm.held || heroWarm.mounted) return;
-      if (!frameReady && first.currentTime < 0.04) return;
-      // Remember that a real frame is on screen. Do not pause: WebKit will
-      // not resume a clip that was paused while it sat behind the page.
-      heroWarm.held = true;
-    }
-    // Pause on the first presented picture so a later home paint is footage,
-    // not the empty black plate Safari shows before a frame exists.
-    if (first.requestVideoFrameCallback) {
-      try { first.requestVideoFrameCallback(function () { hold(true); }); } catch (e) {}
-    }
-    first.addEventListener('timeupdate', function onTime() {
-      if (first.currentTime < 0.04) return;
-      first.removeEventListener('timeupdate', onTime);
-      hold(true);
-    });
-  }
-  function heroFrameReady() {
-    if (!heroWarm) return false;
-    var v = heroWarm.vids[0];
-    return !!(heroWarm.held || (v && v.videoWidth > 1 && v.currentTime >= 0.04));
-  }
-  function whenHeroFrame(limitMs) {
-    return new Promise(function (resolve) {
-      var done = false;
-      var v = heroWarm && heroWarm.vids[0];
-      var timer = 0;
-      function finish() {
-        if (done) return;
-        done = true;
-        if (timer) clearTimeout(timer);
-        if (v) v.removeEventListener('timeupdate', check);
-        resolve();
-      }
-      function check() {
-        if (heroFrameReady()) finish();
-      }
-      if (heroFrameReady()) { finish(); return; }
-      timer = setTimeout(finish, limitMs || 2000);
-      if (v && v.requestVideoFrameCallback) {
-        try { v.requestVideoFrameCallback(function () { check(); }); } catch (e) {}
-      }
-      if (v) v.addEventListener('timeupdate', check);
-    });
-  }
-  function detachHeroPark() {
-    if (!heroWarm) return;
-    heroWarm.mounted = false;
-    // Still parked behind the page: leave it alone so the first frame can finish.
-    if (!heroWarm.park.parentNode || heroWarm.park.parentNode === document.body) return;
-    heroWarm.gen += 1;
-    document.body.appendChild(heroWarm.park);
-    heroWarm.vids.forEach(function (v) {
-      v.classList.remove('fading');
-      v.style.opacity = '1';
-      try { v.pause(); } catch (e) {}
-    });
-    if (heroWarm.api) heroWarm.api.restack();
-  }
   function heroVideos() {
-    if (heroWarm) return '<div class="hero-videos" aria-hidden="true"></div>';
-    var clips = heroClipSrcs();
     return '<div class="hero-videos" aria-hidden="true">' +
-      '<video class="over on" autoplay muted playsinline webkit-playsinline loop preload="auto" src="' + clips[0] + '"></video>' +
-      '<video class="under" muted playsinline webkit-playsinline preload="auto" src="' + clips[1 % clips.length] + '"></video>' +
-      '<video class="idle" muted playsinline webkit-playsinline preload="auto" src="' + clips[2 % clips.length] + '"></video>' +
+      '<video class="on" autoplay muted playsinline webkit-playsinline preload="auto"></video>' +
+      '<video muted playsinline webkit-playsinline preload="none"></video>' +
       '</div>';
   }
   function pageHome() {
@@ -1061,8 +946,6 @@
       '<div class="login-wrap"><div class="login-card">' + inner + '</div></div></div>';
   }
   function renderLogin(msg) {
-    detachHeroPark();
-    warmHero();
     view = 'login';
     document.title = 'Sign in · AGENT HUB';
     $app.innerHTML = loginShell(
@@ -1090,7 +973,6 @@
     maybePlayIntro();
   }
   function renderOtp(ch, msg, okMsg) {
-    detachHeroPark();
     view = 'otp'; otpCh = ch;
     var hint = (ch && ch.emailHint) || 'your account email';
     document.title = 'Enter code · AGENT HUB';
@@ -1122,7 +1004,6 @@
     syncHomeScreen();
   }
   function renderForgot(email, step, msg, okMsg, need) {
-    detachHeroPark();
     view = 'forgot';
     var two = step === 2; need = need || [];
     document.title = 'Reset password · AGENT HUB';
@@ -1450,446 +1331,146 @@
         v.removeAttribute('src');
         try { v.pause(); } catch (e) {}
       });
-      if (heroWarm) detachHeroPark();
       return;
     }
-    if (heroWarm && heroWarm.api) {
-      heroWarm.mounted = true;
-      if (heroWarm.park.parentNode !== box) box.appendChild(heroWarm.park);
-      heroWarm.api.attach(hero);
-      heroWarm.api.play();
-      return;
-    }
-    var slots = heroWarm ? heroWarm.vids : qsa('video', box);
-    if (heroWarm) {
-      heroWarm.mounted = true;
-      if (heroWarm.park.parentNode !== box) box.appendChild(heroWarm.park);
-    }
+    var slots = qsa('video', box);
     if (slots.length < 2 || !clips.length) return;
-    slots.forEach(function (v, i) {
-      prepHeroVideo(v);
-      if (!v._heroSrc) v._heroSrc = clips[i] || v.getAttribute('src') || '';
-    });
     var active = 0;
-    var clipAt = [];
+    var clipAt = [0, 1 % clips.length];
     var fading = false;
-    var handoffForce = false;
-    var handoffEl = null;
     var fadeMs = 1600;
-    var heroEl = hero;
-    var heroVisible = true;
-    var retryTimer = 0;
-    for (var seed = 0; seed < slots.length; seed++) clipAt[seed] = seed % clips.length;
-    function liveBox() {
-      var parent = heroWarm && heroWarm.park && heroWarm.park.parentNode;
-      if (parent && parent.classList && parent.classList.contains('hero-videos')) return parent;
-      return box;
-    }
-    function heroOff() {
-      var live = liveBox();
-      return !!(live && live.classList.contains('off'));
-    }
-    function incomingIndex() {
-      return (active + 1) % slots.length;
-    }
     function showTap() {
-      var live = liveBox();
-      if (live) live.classList.remove('off');
-      if (slots[active]) slots[active].classList.add('on', 'over');
-      if (heroEl) heroEl.classList.add('needs-gesture');
+      box.classList.remove('off');
+      if (slots[active]) slots[active].classList.add('on');
+      if (hero) hero.classList.add('needs-gesture');
     }
     function clearTap() {
-      if (heroEl) heroEl.classList.remove('needs-gesture');
+      if (hero) hero.classList.remove('needs-gesture');
     }
     function reveal(v) {
       if (!v || v !== slots[active]) return;
-      var live = liveBox();
-      if (live) live.classList.remove('off');
-      v.classList.add('on', 'over');
+      box.classList.remove('off');
+      v.classList.add('on');
       clearTap();
     }
     function autoplayBlocked(err) {
       if (!err || err.name === 'NotAllowedError') return true;
       return /not allowed|user gesture|interact with|user agent/i.test(String(err.message || ''));
     }
-    function restack() {
-      var inc = incomingIndex();
-      slots.forEach(function (v, i) {
-        var top = i === active;
-        var under = i === inc;
-        v.classList.toggle('over', top);
-        v.classList.toggle('under', under);
-        v.classList.toggle('on', top);
-        v.classList.toggle('idle', !top && !under);
-        if (!v.classList.contains('fading')) v.style.opacity = (top || under) ? '1' : '0';
-      });
+    function silence(v) {
+      v.muted = true;
+      v.defaultMuted = true;
+      v.playsInline = true;
+      v.setAttribute('muted', '');
+      v.setAttribute('playsinline', '');
+      v.setAttribute('webkit-playsinline', '');
+      v.removeAttribute('poster');
+      v.autoplay = false;
+      v.removeAttribute('autoplay');
     }
     function arm(el, src) {
-      if (!el || !src) return;
-      prepHeroVideo(el);
-      el.autoplay = false;
-      el.removeAttribute('autoplay');
-      var hasSrc = !!el.getAttribute('src');
-      var changed = el._heroSrc !== src || !hasSrc;
-      if (!changed && el._armHooked) {
-        // A paused element can drop back to an empty network state. Ask
-        // for the file again so the handoff is not waiting on a dead buffer.
-        if (el.readyState < 2 && el.networkState === 0 && el !== slots[active]) {
-          try { el.load(); } catch (e) {}
-        }
-        return;
+      silence(el);
+      el.preload = 'auto';
+      if (el._heroSrc === src) return;
+      el._heroSrc = src;
+      el.src = src;
+      function hold() {
+        if (el.classList.contains('on')) return;
+        try { el.pause(); el.currentTime = 0; } catch (e) {}
       }
-      if (changed) {
-        el._heroSrc = src;
-        el._parkGen = (el._parkGen || 0) + 1;
-        el._armHooked = false;
-        el.src = src;
-      }
-      var gen = el._parkGen || (el._parkGen = 1);
-      el._armHooked = true;
-      function park() {
-        if (el._parkGen !== gen) return;
-        if (el === handoffEl || el === slots[active]) return;
-        // Park only once the browser can play through. Pausing on the
-        // first frame (loadeddata) stops the download before the handoff.
-        if (el.readyState < 4) return;
-        try {
-          if (el.currentTime < 0.001 || el.currentTime > 0.2) el.currentTime = 0.001;
-        } catch (e) {}
-        try { el.pause(); } catch (e) {}
-      }
-      if (el.readyState >= 4) park();
-      else el.addEventListener('canplaythrough', park, { once: true });
-    }
-    function primeNext() {
-      var inc = incomingIndex();
-      if (slots[inc]) arm(slots[inc], clips[clipAt[inc]]);
-      for (var s = 0; s < slots.length; s++) {
-        if (s === active || s === inc) continue;
-        arm(slots[s], clips[clipAt[s]]);
-      }
+      el.addEventListener('loadeddata', hold, { once: true });
     }
     function play(v) {
-      if (!v || heroOff()) return;
-      prepHeroVideo(v);
-      v.autoplay = true;
-      // Keep looping until the next clip is buffered. Clearing loop here
-      // is what froze the hero: the clip then played out and stopped.
-      v.loop = true;
-      v.setAttribute('loop', '');
-      v.setAttribute('autoplay', '');
-      var live = liveBox();
-      if (live) live.classList.remove('off');
-      v.classList.add('on', 'over');
+      silence(v);
+      box.classList.remove('off');
+      v.classList.add('on');
       var p = v.play();
       if (p && p.then) {
-        p.then(function () { reveal(v); primeNext(); }).catch(function (err) {
+        p.then(function () { reveal(v); }).catch(function (err) {
           if (err && err.name === 'AbortError') return;
           if (autoplayBlocked(err)) showTap();
         });
       } else {
         reveal(v);
-        primeNext();
       }
       return p;
     }
-    function resume(v) {
-      if (!v || heroOff() || !heroVisible) return;
-      v.loop = true;
-      v.setAttribute('loop', '');
-      v.muted = true;
-      v.defaultMuted = true;
-      if (!v.paused && !v.ended && v.readyState >= 2) return;
-      if (v.ended || (isFinite(v.duration) && v.duration > 0 && v.currentTime >= v.duration - 0.05)) {
-        try { v.currentTime = 0.05; } catch (e) {}
-      }
-      var p = v.play();
-      if (p && p.catch) p.catch(function (err) {
-        if (err && err.name === 'AbortError') return;
-        if (autoplayBlocked(err)) showTap();
-      });
-      return p;
-    }
-    function goNext(force) {
-      if (heroOff() || (heroWarm && !heroWarm.mounted)) return;
-      if (fading) {
-        if (force) handoffForce = true;
-        return;
-      }
+    function goNext() {
+      if (fading || box.classList.contains('off')) return;
       fading = true;
-      handoffForce = !!force;
-      var gen = heroWarm ? heroWarm.gen : 0;
       var outgoing = active;
-      var incoming = incomingIndex();
-      var prev = slots[outgoing];
+      var incoming = outgoing ? 0 : 1;
+      var incomingClip = clipAt[incoming];
       var next = slots[incoming];
-      var started = false;
-      var cued = false;
-      handoffEl = next;
-      if (!next.getAttribute('src') || next._heroSrc !== clips[clipAt[incoming]]) {
-        arm(next, clips[clipAt[incoming]]);
-      }
-      function aborted() {
-        return (heroWarm && heroWarm.gen !== gen) || !next.isConnected;
-      }
-      function stopRetry() {
-        if (retryTimer) { clearTimeout(retryTimer); retryTimer = 0; }
-      }
-      function cleanupWait() {
-        stopRetry();
-        next.removeEventListener('playing', onSignal);
-        next.removeEventListener('canplaythrough', onSignal);
-        next.removeEventListener('error', onNextError);
-      }
-      function readyNow() {
-        if (next.error || !(next.videoWidth > 1)) return false;
-        if (next.readyState >= 4) return true;
-        return handoffForce && next.readyState >= 2;
-      }
-      function cueStart() {
-        if (cued || next.readyState < 1) return;
-        try {
-          cued = true;
-          if (next.currentTime > 0.2 || next.currentTime < 0.001) next.currentTime = 0.001;
-        } catch (e) { cued = false; }
-      }
-      function begin() {
-        if (started || aborted()) return;
-        if (!readyNow() || next.paused || next.ended) return;
-        started = true;
-        cleanupWait();
-        next.loop = true;
-        next.setAttribute('loop', '');
-        if (isFinite(prev.duration) && prev.currentTime >= prev.duration - fadeMs / 1000 - 0.25) {
-          prev.loop = false;
-          prev.removeAttribute('loop');
-        }
-        prev.classList.add('over', 'fading');
-        next.classList.add('under');
-        next.classList.remove('over', 'idle');
-        next.style.opacity = '1';
-        prev.style.opacity = '1';
-        void prev.offsetWidth;
-        prev.style.opacity = '0';
-        active = incoming;
-        setTimeout(function () {
-          if (aborted()) {
-            fading = false;
-            handoffEl = null;
-            handoffForce = false;
-            return;
-          }
-          prev.classList.remove('fading', 'over', 'on');
-          try { prev.pause(); } catch (e) {}
-          var showing = clipAt[active];
-          var inc = incomingIndex();
-          var need = (showing + 1) % clips.length;
-          if (slots[inc] && (clipAt[inc] !== need || !slots[inc].getAttribute('src'))) {
-            clipAt[inc] = need;
-            arm(slots[inc], clips[need]);
-          }
-          var step = 2;
-          for (var s = 0; s < slots.length; s++) {
-            if (s === active || s === inc) continue;
-            var want = (showing + step) % clips.length;
-            step += 1;
-            if (clipAt[s] !== want || !slots[s].getAttribute('src')) {
-              clipAt[s] = want;
-              arm(slots[s], clips[want]);
-            }
-          }
-          fading = false;
-          handoffEl = null;
-          handoffForce = false;
-          restack();
-          primeNext();
-        }, fadeMs);
-      }
-      function onSignal() { begin(); }
-      function onNextError() {
-        if (started || aborted()) return;
-        var skip = (clipAt[incoming] + 1) % clips.length;
-        if (skip === clipAt[outgoing] && clips.length > 2) skip = (skip + 1) % clips.length;
-        if (skip === clipAt[incoming]) return;
-        clipAt[incoming] = skip;
-        cued = false;
-        arm(next, clips[skip]);
-      }
-      function retry() {
-        if (started) return;
-        if (aborted()) {
-          cleanupWait();
-          fading = false;
-          handoffEl = null;
-          handoffForce = false;
-          return;
-        }
-        if (!heroVisible || document.hidden) {
-          retryTimer = setTimeout(retry, 500);
-          return;
-        }
-        if (next.error) onNextError();
-        if (readyNow()) {
-          cueStart();
-          if (next.paused || next.ended) {
-            var p = next.play();
-            if (p && p.then) p.then(begin).catch(function (err) {
-              if (err && err.name === 'AbortError') return;
-              if (autoplayBlocked(err)) showTap();
-              resume(prev);
-            });
-            else begin();
-          } else {
-            begin();
-          }
-        } else {
-          next.preload = 'auto';
-          next.setAttribute('preload', 'auto');
-          if (prev === slots[active]) resume(prev);
-        }
-        if (!started) retryTimer = setTimeout(retry, 500);
-      }
-      // These clips are 5 seconds. The first-paint handoff turned loop off
-      // and gave up after 1.2s, so a slow next file ran the current clip
-      // out and left it frozen. Stay on this clip until canplaythrough.
-      next.addEventListener('playing', onSignal);
-      next.addEventListener('canplaythrough', onSignal);
-      next.addEventListener('error', onNextError);
-      retry();
+      box.appendChild(next);
+      next.classList.remove('on');
+      void next.offsetWidth;
+      try { next.pause(); next.currentTime = 0; } catch (e) {}
+      next.classList.add('on');
+      active = incoming;
+      play(next);
+      setTimeout(function () {
+        var prev = slots[outgoing];
+        prev.classList.remove('on');
+        try { prev.pause(); } catch (e) {}
+        var follow = (incomingClip + 1) % clips.length;
+        arm(prev, clips[follow]);
+        clipAt[outgoing] = follow;
+        fading = false;
+      }, fadeMs);
     }
-    if (!heroWarm || !heroWarm.bound) {
+    slots.forEach(function (v) {
+      silence(v);
+      v.onplaying = function () { reveal(v); };
+      v.onerror = function () {
+        if (v !== slots[active] || fading) return;
+        goNext();
+      };
+      v.ontimeupdate = function () {
+        if (v !== slots[active] || fading || !isFinite(v.duration)) return;
+        if (v.currentTime >= v.duration - fadeMs / 1000) goNext();
+      };
+      v.onended = function () { if (v === slots[active]) goNext(); };
+    });
+    arm(slots[0], clips[0]);
+    arm(slots[1], clips[clipAt[1]]);
+    box.classList.remove('off');
+    slots[0].classList.add('on');
+    slots[1].classList.remove('on');
+    function startHero() {
+      if (!qs('.hero-videos')) return;
+      play(slots[active]);
+    }
+    if (qs('.brand-intro')) {
       slots.forEach(function (v) {
-        v.onplaying = function () { reveal(v); if (v === slots[active]) primeNext(); };
-        v.addEventListener('stalled', function () { if (v === slots[active]) resume(v); });
-        v.addEventListener('waiting', function () { if (v === slots[active]) resume(v); });
-        v.addEventListener('error', function () {
-          if (heroWarm && !heroWarm.mounted) return;
-          if (v === slots[active]) {
-            if (fading) handoffForce = true;
-            else goNext(true);
-            return;
-          }
-          if (fading && v === handoffEl) return;
-          var idx = slots.indexOf(v);
-          if (idx < 0) return;
-          var skip = (clipAt[idx] + 1) % clips.length;
-          if (skip === clipAt[active]) skip = (skip + 1) % clips.length;
-          if (skip === clipAt[idx]) return;
-          clipAt[idx] = skip;
-          arm(v, clips[skip]);
-        });
-        v.ontimeupdate = function () {
-          if (v !== slots[active] || !isFinite(v.duration)) return;
-          if (heroWarm && !heroWarm.mounted) return;
-          if (v.currentTime > 0.25) primeNext();
-          if (fading) return;
-          if (v.currentTime >= v.duration - fadeMs / 1000) goNext(false);
-        };
-        v.onended = function () {
-          if (v === slots[active] && (!heroWarm || heroWarm.mounted)) {
-            resume(v);
-            goNext(false);
-          }
-        };
+        v.removeAttribute('autoplay');
+        try { v.pause(); } catch (e) {}
       });
-      var watchT = -1;
-      var watchAt = Date.now();
-      var watchKicks = 0;
-      setInterval(function () {
-        if (heroOff() || !heroVisible || document.hidden) return;
-        if (heroWarm && !heroWarm.mounted) return;
-        var v = slots[active];
-        if (!v) return;
-        var now = Date.now();
-        if (v.seeking) { watchAt = now; return; }
-        if (v.currentTime + 0.05 < watchT) {
-          watchT = v.currentTime;
-          watchAt = now;
-          watchKicks = 0;
-          return;
-        }
-        if (!v.paused && v.currentTime > watchT + 0.01) {
-          watchT = v.currentTime;
-          watchAt = now;
-          watchKicks = 0;
-          if (!fading && isFinite(v.duration) && v.duration > 0.5 && v.currentTime >= v.duration - fadeMs / 1000) goNext(false);
-          return;
-        }
-        if (now - watchAt < 2500) return;
-        watchAt = now;
-        watchKicks += 1;
-        if (v.error || watchKicks >= 2) {
-          watchKicks = 0;
-          goNext(true);
-          return;
-        }
-        resume(v);
-      }, 1000);
+      document.addEventListener('enesma-intro-done', function onIntro() {
+        document.removeEventListener('enesma-intro-done', onIntro);
+        startHero();
+      });
+    } else {
+      startHero();
     }
-    restack();
-    primeNext();
-    if (box) box.classList.remove('off');
-    var io = null;
-    function attach(nextHero) {
-      heroEl = nextHero || heroEl;
-      if (io) { try { io.disconnect(); } catch (e) {} io = null; }
-      if (heroEl && !heroEl._heroClick) {
-        heroEl._heroClick = true;
-        heroEl.addEventListener('click', function () {
-          if (!heroEl.classList.contains('needs-gesture')) return;
-          play(slots[active]);
-        });
-      }
-      if ('IntersectionObserver' in window && heroEl) {
-        io = new IntersectionObserver(function (ents) {
-          var vis = ents[0] && ents[0].isIntersecting;
-          if (!vis) {
-            if (heroEl && heroEl.getBoundingClientRect().height < 8) {
-              heroVisible = true;
-              return;
-            }
-            heroVisible = false;
-            if (fading) return;
-            slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
-          } else {
-            heroVisible = true;
-            play(slots[active]);
-          }
-        }, { threshold: 0.2 });
-        io.observe(heroEl);
-        if (heroWarm) heroWarm.io = io;
-      }
+    if (hero) {
+      hero.addEventListener('click', function () {
+        if (!hero.classList.contains('needs-gesture')) return;
+        play(slots[active]);
+      });
     }
-    var api = {
-      play: function () { play(slots[active]); },
-      attach: attach,
-      restack: restack
-    };
-    if (heroWarm) {
-      heroWarm.api = api;
-      heroWarm.bound = true;
-      heroWarm.mounted = true;
+    if ('IntersectionObserver' in window && qs('.hero')) {
+      var io = new IntersectionObserver(function (ents) {
+        var vis = ents[0] && ents[0].isIntersecting;
+        if (!vis) {
+          if (hero && hero.getBoundingClientRect().height < 8) return;
+          slots.forEach(function (v) { try { v.pause(); } catch (e) {} });
+        } else if (!qs('.brand-intro')) play(slots[active]);
+      }, { threshold: 0.2 });
+      io.observe(qs('.hero'));
     }
-    attach(hero);
-    // Play now, including underneath the gold intro, so the handoff is footage.
-    api.play();
   }
-  function renderApp(force) {
-    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (!reduceMotion && path() === '/') {
-      warmHero();
-      if (!force && heroWarm && !heroFrameReady()) {
-        if (heroWarm._waiting) return;
-        heroWarm._waiting = true;
-        whenHeroFrame(2000).then(function () {
-          if (heroWarm) heroWarm._waiting = false;
-          if (!S.token || path() !== '/') return;
-          renderApp(true);
-        });
-        return;
-      }
-    }
-    detachHeroPark();
+  function renderApp() {
     clearHolidayBindings();
     view = 'app';
     document.title = titles() + ' · ENESMA Realty';
@@ -1935,7 +1516,6 @@
   function boot() {
     syncHomeScreen();
     Auth.bootSession();
-    if (!S.token || path() === '/') warmHero();
     if (!S.token) { renderLogin(); return; }
     Auth.api('me').then(function (d) {
       S.user = (d && d.user) || d;
