@@ -31,7 +31,7 @@ ENESMA AGENT HUB opens the same tiles as the Agent Hub home page from a Chrome t
 
 The listing is public, so anyone can find and install it. The popup shows a sign-in form and no tiles until you sign in with the same email and password as the Agent Hub and Transaction Center. A code may be emailed when you sign in from a new device, the same as the website. After you sign in, each tile opens in a new tab. Signing in also signs in agent.enesmarealty.com, Transaction Center, and E-Sign.
 
-The tiles are Compliance, Marketing, Technology, Office Listings, Training Library, Preferred Partners, Calculators, Office Hubs, and Contact the Broker. They are read from the live Agent Hub, so the list stays in sync with the home page.
+The tiles are Compliance, Marketing, Technology, Office Listings, Training Library, Preferred Partners, Calculators, Office Hubs, E-Shop, and Contact the Broker. They are read from the live Agent Hub, so the list stays in sync with the home page.
 
 Passwords are not stored. Personal data is not stored or sold. The extension uses only the session cookie on enesmarealty.com.
 

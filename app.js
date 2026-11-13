@@ -225,6 +225,7 @@
       { t: 'Technology', s: 'CRM, MLS and tools', h: '#/technology' },
       { t: 'Office Listings', s: 'Current ENESMA listings', h: '#/listings' },
       { t: 'Office Hubs', s: 'Reserve a desk or the conference room', h: '#/office-hubs' },
+      { t: 'E-Shop', s: 'Branded Agent Gear & Apparel', h: 'https://shop.enesmarealty.com' },
       { t: 'Training Library', s: 'Recorded sessions and coaching', h: '#/training' },
       { t: 'Calculators', s: 'Flip, net sheet, mortgage and cap rate', h: '#/calculators' },
       { t: 'Flip Calculator', s: 'Fix-and-flip profit estimate', h: '#/calculators/flip-calculator' },
