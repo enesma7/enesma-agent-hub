@@ -50,9 +50,9 @@ window.HUB_CONTENT = {
     },
     {
       "href": "https://shop.enesmarealty.com",
-      "img": "assets/sites/home-eshop.jpg",
-      "title": "E-Shop",
-      "sub": "Branded Agent Gear & Apparel"
+      "img": "assets/sites/home-shop.jpg",
+      "title": "Shop",
+      "sub": "Agent gear, apparel and signs"
     },
     {
       "href": "#/agents/enrique-esparza",
@@ -643,7 +643,7 @@ window.HUB_CONTENT = {
       { "img": "assets/sites/home-06.jpg", "href": "#/preferred-partners", "alt": "Preferred Partners. Escrow, lenders, inspectors & more", "title": "Preferred Partners", "sub": "Escrow, lenders, inspectors & more" },
       { "img": "assets/sites/home-07.jpg", "href": "#/calculators", "alt": "Calculators. Flip, net sheet & mortgage", "title": "Calculators", "sub": "Flip, net sheet & mortgage" },
       { "img": "assets/sites/home-08.jpg", "href": "#/office-hubs", "alt": "Office Hubs. Reserve a desk or the conference room", "title": "Office Hubs", "sub": "Reserve a desk or the conference room" },
-      { "img": "assets/sites/home-eshop.jpg", "href": "https://shop.enesmarealty.com", "ext": true, "alt": "E-Shop. Branded Agent Gear & Apparel", "title": "E-Shop", "sub": "Branded Agent Gear & Apparel" },
+      { "img": "assets/sites/home-shop.jpg", "href": "https://shop.enesmarealty.com", "ext": true, "alt": "Shop. Agent gear, apparel and signs", "title": "Shop", "sub": "Agent gear, apparel and signs" },
       { "img": "assets/sites/home-09.jpg", "href": "#/agents/enrique-esparza", "alt": "Contact the Broker. Enrique Esparza, DRE# 01926362", "title": "Contact the Broker", "sub": "Enrique Esparza, DRE# 01926362" }
     ],
     "compliance": [

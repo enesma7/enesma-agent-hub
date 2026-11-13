@@ -30,13 +30,14 @@ assert(tiles.length === 10, 'home tile count ' + tiles.length);
 assert(tiles[0].title === 'Compliance', 'first home tile');
 assert(tiles[0].href === 'https://agent.enesmarealty.com/#/compliance', 'hash route url');
 assert(tiles[0].img === 'https://agent.enesmarealty.com/assets/sites/home-01.jpg', 'tile image url');
-const eshop = tiles.filter(function (t) { return t.title === 'E-Shop'; })[0];
-assert(eshop && eshop.href === 'https://shop.enesmarealty.com/', 'eshop url');
-assert(eshop && eshop.img === 'https://agent.enesmarealty.com/assets/sites/home-eshop.jpg', 'eshop image');
-assert(tiles[7].title === 'Office Hubs' && tiles[8].title === 'E-Shop' && tiles[9].title === 'Contact the Broker', 'eshop sits between Office Hubs and Contact the Broker');
+const shop = tiles.filter(function (t) { return t.title === 'Shop'; })[0];
+assert(shop && shop.href === 'https://shop.enesmarealty.com/', 'shop url');
+assert(shop && shop.sub === 'Agent gear, apparel and signs', 'shop subtitle');
+assert(shop && shop.img === 'https://agent.enesmarealty.com/assets/sites/home-shop.jpg', 'shop image');
+assert(tiles[7].title === 'Office Hubs' && tiles[8].title === 'Shop' && tiles[9].title === 'Contact the Broker', 'shop sits between Office Hubs and Contact the Broker');
 assert(tiles.map(function (t) { return t.title; }).join('|') === [
   'Compliance', 'Marketing', 'Technology', 'Office Listings', 'Training Library',
-  'Preferred Partners', 'Calculators', 'Office Hubs', 'E-Shop', 'Contact the Broker'
+  'Preferred Partners', 'Calculators', 'Office Hubs', 'Shop', 'Contact the Broker'
 ].join('|'), 'home tile titles');
 
 const fallback = fallbackFromSources(contentSrc, configSrc);
