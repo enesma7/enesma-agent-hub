@@ -389,6 +389,10 @@
     if (!/\.mp4$/i.test(name)) name += '.mp4';
     return name;
   }
+  // iOS only offers Save Video for a video/mp4 File whose name ends in .mp4.
+  function holidayVideoFile(blob, filename) {
+    return new File([blob], holidayFileName(filename), { type: 'video/mp4' });
+  }
   function holidaySaveOpensTab() {
     var ua = navigator.userAgent || '';
     var plat = navigator.platform || '';
@@ -425,8 +429,7 @@
         return res.blob();
       })
       .then(function (blob) {
-        var type = (blob && blob.type && blob.type.indexOf('video/') === 0) ? blob.type : 'video/mp4';
-        var file = new File([blob], job.filename, { type: type });
+        var file = holidayVideoFile(blob, job.filename || job.url);
         holidayFiles[job.url] = file;
         return file;
       })
@@ -499,31 +502,42 @@
   }
   function saveHolidayVideo(url, filename, title, onSettled) {
     if (!url) return false;
-    var name = filename || holidayFileName(url);
-    var file = holidayFiles[url];
+    var name = holidayFileName(filename || url);
+    var source = holidayFiles[url];
+    var file = null;
     // Share needs the File already in hand. Waiting on a fetch drops the iOS user gesture.
-    if (file && canShareHolidayFile(file)) {
-      var payload = { files: [file] };
-      if (title) payload.title = title;
-      var finish = function (err) {
-        if (typeof onSettled === 'function') onSettled(err || null);
-        if (!err || err.name === 'AbortError') return;
-        if (holidaySaveOpensTab()) openHolidayVideo(url);
-        else downloadHolidayFile(url, name);
-      };
-      try {
-        var shared = navigator.share(payload);
-        if (shared && typeof shared.then === 'function') {
-          shared.then(function () { finish(null); }, function (err) {
-            finish(err || new Error('share failed'));
-          });
-        } else {
-          finish(null);
+    // Rebuild from the fetched blob so the type is video/mp4 and the name ends in .mp4
+    // even when the response type is empty or wrong. title is not forwarded: iOS drops
+    // Save Video when title, text, or url is included with the file.
+    if (source) {
+      try { file = holidayVideoFile(source, name); }
+      catch (e) { file = null; }
+    }
+    if (file && navigator.share && navigator.canShare) {
+      var canShare = false;
+      try { canShare = navigator.canShare({ files: [file] }); }
+      catch (e) { canShare = false; }
+      if (canShare) {
+        var finish = function (err) {
+          if (typeof onSettled === 'function') onSettled(err || null);
+          if (!err || err.name === 'AbortError') return;
+          if (holidaySaveOpensTab()) openHolidayVideo(url);
+          else downloadHolidayFile(url, name);
+        };
+        try {
+          var shared = navigator.share({ files: [file] });
+          if (shared && typeof shared.then === 'function') {
+            shared.then(function () { finish(null); }, function (err) {
+              finish(err || new Error('share failed'));
+            });
+          } else {
+            finish(null);
+          }
+        } catch (err) {
+          finish(err);
         }
-      } catch (err) {
-        finish(err);
+        return true;
       }
-      return true;
     }
     prioritizeHolidayPrefetch(url, name);
     if (holidayShareNeedsFile()) return false;
