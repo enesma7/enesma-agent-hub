@@ -63,59 +63,70 @@ window.HUB_CONTENT = {
   ],
   "events": [
     {
-      "start": "2026-11-05T13:00:00-08:00",
-      "day": "05",
-      "mon": "NOV",
-      "title": "Advanced zipForm & Transact",
+      "start": "2026-12-01T10:00:00-08:00",
+      "day": "01",
+      "mon": "DEC",
+      "title": "Getting Started with zipForm & Transact",
+      "meta": "10:00 AM · Zoom · C.A.R.",
+      "host": "C.A.R.",
+      "free": true,
+      "img": "assets/events/zipform-basics.jpg",
+      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D195484637"
+    },
+    {
+      "start": "2026-12-03T13:00:00-08:00",
+      "day": "03",
+      "mon": "DEC",
+      "title": "Explore Advanced Tools in zipForm & Transact",
       "meta": "1:00 PM · Zoom · C.A.R.",
       "host": "C.A.R.",
       "free": true,
-      "img": "assets/events/woman-laptop.jpg",
-      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D195484320"
+      "img": "assets/events/zipform-advanced.jpg",
+      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D195484645"
     },
     {
-      "start": "2026-11-10T10:00:00-08:00",
-      "day": "10",
-      "mon": "NOV",
-      "title": "Probate & Living Trusts",
-      "meta": "10:00 AM · Zoom · CVAR · Free",
-      "host": "CVAR",
-      "free": true,
-      "img": "assets/events/documents.jpg",
-      "href": "https://members.cvar.net/ap/Events/Register/b3Fmwv7iNCRCw"
-    },
-    {
-      "start": "2026-11-10T11:00:00-08:00",
-      "day": "10",
-      "mon": "NOV",
+      "start": "2026-12-08T11:00:00-08:00",
+      "day": "08",
+      "mon": "DEC",
       "title": "Digital Signatures in zipForm & Transact",
       "meta": "11:00 AM · Zoom · C.A.R.",
       "host": "C.A.R.",
       "free": true,
-      "img": "assets/events/signatures.jpg",
-      "href": "https://carorg.zoom.us/webinar/register/WN_P3S6IiL1Qg2WJx3rMxoffw"
+      "img": "assets/events/digital-signatures.jpg",
+      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D195484656"
     },
     {
-      "start": "2026-11-10T13:30:00-08:00",
-      "day": "10",
-      "mon": "NOV",
-      "title": "New Laws 2027",
+      "start": "2026-12-08T13:30:00-08:00",
+      "day": "08",
+      "mon": "DEC",
+      "title": "New & Revised Forms",
       "meta": "1:30 PM · Zoom · C.A.R.",
       "host": "C.A.R.",
       "free": true,
-      "img": "assets/events/capitol.jpg",
-      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D211809638"
+      "img": "assets/events/revised-forms.jpg",
+      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D211158021"
     },
     {
-      "start": "2026-11-18T13:00:00-08:00",
+      "start": "2026-12-10T13:30:00-08:00",
+      "day": "10",
+      "mon": "DEC",
+      "title": "Landlord-Tenant and Property Management Forms",
+      "meta": "1:30 PM · Zoom · C.A.R.",
+      "host": "C.A.R.",
+      "free": true,
+      "img": "assets/events/property-forms.jpg",
+      "href": "https://www.car.org/meetings/calendar?trumbaEmbed=view%3Devent%26eventid%3D214164723"
+    },
+    {
+      "start": "2026-12-18T09:00:00-08:00",
       "day": "18",
-      "mon": "NOV",
+      "mon": "DEC",
       "title": "Ethics Replay: NAR Ethics Requirement",
-      "meta": "1:00 PM · Zoom · CVAR · Free",
+      "meta": "9:00 AM · Zoom · CVAR · Free",
       "host": "CVAR",
       "free": true,
-      "img": "assets/events/ethics.jpg",
-      "href": "https://members.cvar.net/ap/Events/Register/xRF89BvsMCYC7"
+      "img": "assets/events/ethics-replay.jpg",
+      "href": "https://members.cvar.net/ap/Events/Register/b3FmQVGHNCRCw"
     }
   ],
   "complianceTiles": [
